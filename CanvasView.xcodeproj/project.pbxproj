@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		ED3342BF1F7A71B20034AB7C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342BE1F7A71B20034AB7C /* AppDelegate.swift */; };
-		ED3342C11F7A71B20034AB7C /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342C01F7A71B20034AB7C /* ViewController.swift */; };
+		ED3342C11F7A71B20034AB7C /* CanvasViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342C01F7A71B20034AB7C /* CanvasViewController.swift */; };
 		ED3342C41F7A71B20034AB7C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ED3342C21F7A71B20034AB7C /* Main.storyboard */; };
 		ED3342C61F7A71B20034AB7C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ED3342C51F7A71B20034AB7C /* Assets.xcassets */; };
 		ED3342C91F7A71B20034AB7C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ED3342C71F7A71B20034AB7C /* LaunchScreen.storyboard */; };
 		ED3342D41F7A71B30034AB7C /* CanvasViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342D31F7A71B30034AB7C /* CanvasViewTests.swift */; };
+		ED3342DF1F7A72820034AB7C /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342DE1F7A72820034AB7C /* CanvasView.swift */; };
+		ED3342E11F7A8E080034AB7C /* StrokeGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342E01F7A8E080034AB7C /* StrokeGestureRecognizer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,7 +30,7 @@
 /* Begin PBXFileReference section */
 		ED3342BB1F7A71B20034AB7C /* CanvasView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CanvasView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED3342BE1F7A71B20034AB7C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		ED3342C01F7A71B20034AB7C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		ED3342C01F7A71B20034AB7C /* CanvasViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasViewController.swift; sourceTree = "<group>"; };
 		ED3342C31F7A71B20034AB7C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		ED3342C51F7A71B20034AB7C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ED3342C81F7A71B20034AB7C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -36,6 +38,8 @@
 		ED3342CF1F7A71B30034AB7C /* CanvasViewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CanvasViewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED3342D31F7A71B30034AB7C /* CanvasViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasViewTests.swift; sourceTree = "<group>"; };
 		ED3342D51F7A71B30034AB7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		ED3342DE1F7A72820034AB7C /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		ED3342E01F7A8E080034AB7C /* StrokeGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeGestureRecognizer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,7 +82,9 @@
 			isa = PBXGroup;
 			children = (
 				ED3342BE1F7A71B20034AB7C /* AppDelegate.swift */,
-				ED3342C01F7A71B20034AB7C /* ViewController.swift */,
+				ED3342C01F7A71B20034AB7C /* CanvasViewController.swift */,
+				ED3342DE1F7A72820034AB7C /* CanvasView.swift */,
+				ED3342E01F7A8E080034AB7C /* StrokeGestureRecognizer.swift */,
 				ED3342C21F7A71B20034AB7C /* Main.storyboard */,
 				ED3342C51F7A71B20034AB7C /* Assets.xcassets */,
 				ED3342C71F7A71B20034AB7C /* LaunchScreen.storyboard */,
@@ -199,8 +205,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				ED3342C11F7A71B20034AB7C /* ViewController.swift in Sources */,
+				ED3342C11F7A71B20034AB7C /* CanvasViewController.swift in Sources */,
 				ED3342BF1F7A71B20034AB7C /* AppDelegate.swift in Sources */,
+				ED3342DF1F7A72820034AB7C /* CanvasView.swift in Sources */,
+				ED3342E11F7A8E080034AB7C /* StrokeGestureRecognizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
