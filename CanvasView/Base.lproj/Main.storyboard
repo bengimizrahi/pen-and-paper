@@ -35,11 +35,14 @@
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
+                    <connections>
+                        <outlet property="canvasView" destination="nTz-jB-u22" id="xBU-Vr-xfl"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
                 <gestureRecognizer id="MP4-5B-7A6" customClass="StrokeGestureRecognizer" customModule="CanvasView" customModuleProvider="target">
                     <connections>
-                        <action selector="strokeUpdated:" destination="BYZ-38-t0r" id="Kr0-dh-kn7"/>
+                        <action selector="strokeUpdated:" destination="BYZ-38-t0r" id="jpM-CS-aD4"/>
                     </connections>
                 </gestureRecognizer>
             </objects>

@@ -8,11 +8,15 @@
 
 import UIKit
 
+@IBDesignable
 class CanvasViewController: UIViewController {
+
+    @IBOutlet weak var canvasView: CanvasView!
+
+    var strokes: [Stroke] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
     }
 
     override func didReceiveMemoryWarning() {
@@ -21,6 +25,20 @@ class CanvasViewController: UIViewController {
     }
 
     @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {
+        switch gestureRecognizer.state {
+        case .began:
+            print("began")
+        case .changed:
+            canvasView!.activeStroke = gestureRecognizer.activeStroke!
+        case .ended:
+            print("ended")
+            strokes.append(gestureRecognizer.activeStroke!)
+            canvasView.strokes = strokes
+        case .cancelled:
+            print("cancelled")
+        default:
+            print("???")
+        }
     }
 }
 
