@@ -27,11 +27,15 @@ class CanvasViewController: UIViewController {
     @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {
         switch gestureRecognizer.state {
         case .began:
+            canvasView!.activeStroke = gestureRecognizer.activeStroke!
+            canvasView!.setNeedsDisplayForActiveStroke()
             print("began")
         case .changed:
             canvasView!.activeStroke = gestureRecognizer.activeStroke!
+            canvasView!.setNeedsDisplayForActiveStroke()
         case .ended:
             print("ended")
+            canvasView!.setNeedsDisplayForActiveStroke()
             strokes.append(gestureRecognizer.activeStroke!)
             canvasView.strokes = strokes
         case .cancelled:

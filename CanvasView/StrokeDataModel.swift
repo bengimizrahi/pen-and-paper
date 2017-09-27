@@ -48,6 +48,19 @@ class Stroke {
     func update(_ vertex: Vertex, at index: Int) {
         vertices[index] = vertex
     }
+
+    func frame() -> CGRect? {
+        guard vertices.count > 0 else {
+            return nil
+        }
+
+        var frame = CGRect(origin: vertices.first!.location, size: CGSize())
+        for v in vertices[1...] {
+            frame = frame.union(CGRect(origin:v.location, size: CGSize()))
+        }
+
+        return frame.insetBy(dx: -4.0, dy: -4.0)
+    }
 }
 
 extension Stroke: CustomDebugStringConvertible {

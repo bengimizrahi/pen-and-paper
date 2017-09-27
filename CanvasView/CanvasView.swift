@@ -10,17 +10,8 @@ import UIKit
 
 class CanvasView: UIView {
 
-    var strokes: [Stroke]? {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
-
-    var activeStroke: Stroke? {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
+    var strokes: [Stroke]? = nil
+    var activeStroke: Stroke? = nil
 
     override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext() else { return }
@@ -47,4 +38,9 @@ class CanvasView: UIView {
         }
     }
 
+    func setNeedsDisplayForActiveStroke() {
+        if let frame = activeStroke?.frame() {
+            setNeedsDisplay(frame)
+        }
+    }
 }
