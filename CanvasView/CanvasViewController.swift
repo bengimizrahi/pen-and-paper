@@ -22,7 +22,7 @@ class CanvasViewController: UIViewController {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        assert(false)
     }
 
     @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {

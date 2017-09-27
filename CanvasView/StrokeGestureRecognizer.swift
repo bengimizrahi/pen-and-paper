@@ -15,12 +15,16 @@ class StrokeGestureRecognizer: UIGestureRecognizer {
     var trackedTouch: UITouch? = nil
 
     func append(_ touch: UITouch, with event: UIEvent) {
-        let vertex = Vertex(
-              location: touch.preciseLocation(in: view!),
-              force: touch.force,
-              estimatedProperties: touch.estimatedProperties,
-              estimatedPropertiesExpectingUpdates: touch.estimatedPropertiesExpectingUpdates)
-        activeStroke!.add(vertex)
+        if let coalescedTouches = event.coalescedTouches(for: touch) {
+            for ct in coalescedTouches {
+                let vertex = Vertex(
+                    location: touch.preciseLocation(in: view!),
+                    force: ct.force,
+                    estimatedProperties: ct.estimatedProperties,
+                    estimatedPropertiesExpectingUpdates: ct.estimatedPropertiesExpectingUpdates)
+                activeStroke!.add(vertex)
+            }
+        }
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
