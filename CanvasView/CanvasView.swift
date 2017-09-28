@@ -12,11 +12,15 @@ class CanvasView: UIView {
 
     var strokes: [Stroke]? = nil
     var activeStroke: Stroke? = nil
+    var cachedImage: UIImage? = nil
+    var debugCount = 0
 
     override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrentContext() else { return }
+        debugCount += 1
 
-        let drawStroke = { (stroke:Stroke) -> () in
+        let _ = Measure(reportOnExit: true)
+
+        let drawStroke = { (context: CGContext, stroke:Stroke) -> () in
             guard stroke.vertices.count > 0 else { return }
             context.beginPath()
             context.move(to: stroke.vertices.first!.location)
@@ -26,16 +30,19 @@ class CanvasView: UIView {
             context.drawPath(using: .stroke)
         }
 
-        UIColor.black.set()
 
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+
+        cachedImage?.draw(in: bounds)
+        UIColor.black.set()
         if let activeStroke = activeStroke {
-            drawStroke(activeStroke)
+            drawStroke(context, activeStroke)
         }
-        if let strokes = strokes {
-            for s in strokes {
-                drawStroke(s)
-            }
-        }
+        cachedImage = UIGraphicsGetImageFromCurrentImageContext()
+
+        UIGraphicsEndImageContext()
+        cachedImage!.draw(in: bounds)
     }
 
     func setNeedsDisplayForActiveStroke() {
