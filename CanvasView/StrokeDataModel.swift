@@ -8,6 +8,8 @@
 
 import UIKit
 
+let maxQuandrance: CGFloat = 0.3
+
 struct Vertex {
     var location: CGPoint
     var force: CGFloat
@@ -43,7 +45,28 @@ class Stroke {
     var lastDrawnVertex: Int? = nil
 
     func add(_ vertex: Vertex) {
-        vertices.append(vertex)
+        var shouldAdd = false
+        defer {
+            if shouldAdd {
+                vertices.append(vertex)
+            }
+        }
+
+        if vertices.isEmpty {
+            shouldAdd = true
+            return
+        }
+
+        let prev = vertices.last!.location
+        let curr = vertex.location
+        let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
+        let quadrance = dx * dx + dy * dy
+        guard quadrance >= maxQuandrance else {
+            return
+        }
+
+        print("q: \(quadrance)")
+        shouldAdd = true
     }
 
     func update(_ vertex: Vertex, at index: Int) {

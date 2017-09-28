@@ -11,9 +11,10 @@ import UIKit
 @IBDesignable
 class CanvasViewController: UIViewController {
 
-    @IBOutlet weak var canvasView: CanvasView!
+    @IBOutlet weak var canvasView: UIImageView!
 
     var strokes: [Stroke] = []
+    var activeStroke: Stroke? = nil
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,22 +29,47 @@ class CanvasViewController: UIViewController {
     @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {
         switch gestureRecognizer.state {
         case .began:
-            canvasView!.activeStroke = gestureRecognizer.activeStroke!
-            canvasView!.setNeedsDisplayForActiveStroke()
-            print("began")
+            draw(stroke: gestureRecognizer.activeStroke!)
+            activeStroke = gestureRecognizer.activeStroke!
         case .changed:
-            canvasView!.activeStroke = gestureRecognizer.activeStroke!
-            canvasView!.setNeedsDisplayForActiveStroke()
+            draw(stroke: activeStroke!)
         case .ended:
-            print("ended")
-            canvasView!.setNeedsDisplayForActiveStroke()
-            strokes.append(gestureRecognizer.activeStroke!)
-            canvasView.strokes = strokes
+            draw(stroke: activeStroke!)
+            strokes.append(activeStroke!)
         case .cancelled:
             print("cancelled")
         default:
             print("???")
         }
+    }
+
+    func draw(stroke: Stroke) {
+        guard stroke.vertices.count > 0 else { return }
+        if let l = stroke.lastDrawnVertex {
+            guard l + 1 < stroke.vertices.count else { return }
+        }
+
+        let drawStroke = { (context: CGContext, stroke: Stroke) in
+            context.beginPath()
+            let lastDrawnVertex = stroke.lastDrawnVertex ?? 0
+            context.move(to: stroke.vertices[lastDrawnVertex].location)
+            for v in stroke.vertices[(lastDrawnVertex + 1)...] {
+                context.addLine(to: v.location)
+            }
+            context.drawPath(using: .stroke)
+            stroke.lastDrawnVertex = stroke.vertices.count - 1
+        }
+
+        UIGraphicsBeginImageContextWithOptions(canvasView.bounds.size, false, 0.0)
+        canvasView!.image?.draw(in: canvasView!.bounds)
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        UIColor.black.set()
+        if let activeStroke = activeStroke {
+            drawStroke(context, activeStroke)
+        }
+        canvasView!.image = UIGraphicsGetImageFromCurrentImageContext()
+
+        UIGraphicsEndImageContext()
     }
 }
 
