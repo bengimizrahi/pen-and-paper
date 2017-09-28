@@ -8,35 +8,19 @@
 
 import UIKit
 
-let maxQuandrance: CGFloat = 0.3
-
 struct Vertex {
     var location: CGPoint
-    var force: CGFloat
-    var estimatedProperties: UITouchProperties
-    var estimatedPropertiesExpectingUpdates: UITouchProperties
+    var thickness: CGFloat
 
-    init(location: CGPoint, force: CGFloat,
-             estimatedProperties: UITouchProperties = [],
-             estimatedPropertiesExpectingUpdates: UITouchProperties = []) {
+    init(location: CGPoint, thickness: CGFloat) {
         self.location = location
-        self.force = force
-        self.estimatedProperties = estimatedProperties
-        self.estimatedPropertiesExpectingUpdates =
-                estimatedPropertiesExpectingUpdates
+        self.thickness = thickness
     }
 }
 
 extension Vertex: CustomDebugStringConvertible {
     var debugDescription: String {
-        let get_bitset = { (estProp: UITouchProperties) -> String in
-            let l: [(UITouchProperties, String)] =
-                [(.force, "f"), (.azimuth, "z"), (.altitude, "t"), (.location, "l")]
-            return l.reduce("", { s, t in estProp.contains(t.0) ? s + t.1 : s })
-        }
-        return "Vertex(loc: \(location), force: \(force), " +
-                "est: \(get_bitset(estimatedProperties)), " +
-                "est-exp: \(get_bitset(estimatedPropertiesExpectingUpdates))"
+        return "Vertex(loc: \(location), thickness: \(thickness), "
     }
 }
 
@@ -45,28 +29,7 @@ class Stroke {
     var lastDrawnVertex: Int? = nil
 
     func add(_ vertex: Vertex) {
-        var shouldAdd = false
-        defer {
-            if shouldAdd {
-                vertices.append(vertex)
-            }
-        }
-
-        if vertices.isEmpty {
-            shouldAdd = true
-            return
-        }
-
-        let prev = vertices.last!.location
-        let curr = vertex.location
-        let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
-        let quadrance = dx * dx + dy * dy
-        guard quadrance >= maxQuandrance else {
-            return
-        }
-
-        print("q: \(quadrance)")
-        shouldAdd = true
+        vertices.append(vertex)
     }
 
     func update(_ vertex: Vertex, at index: Int) {

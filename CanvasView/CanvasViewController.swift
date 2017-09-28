@@ -54,6 +54,7 @@ class CanvasViewController: UIViewController {
             let lastDrawnVertex = stroke.lastDrawnVertex ?? 0
             context.move(to: stroke.vertices[lastDrawnVertex].location)
             for v in stroke.vertices[(lastDrawnVertex + 1)...] {
+                context.setLineWidth(v.thickness)
                 context.addLine(to: v.location)
             }
             context.drawPath(using: .stroke)

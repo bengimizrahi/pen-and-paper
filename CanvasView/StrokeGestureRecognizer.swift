@@ -9,20 +9,32 @@
 import UIKit
 import UIKit.UIGestureRecognizerSubclass
 
+let minQuandrance: CGFloat = 0.003
+let defaultThickness: CGFloat = 2.0
+let forceWeight: CGFloat = 0.33
+
 class StrokeGestureRecognizer: UIGestureRecognizer {
 
     var activeStroke: Stroke? = nil
     var trackedTouch: UITouch? = nil
 
     func append(_ touch: UITouch, with event: UIEvent) {
+        let goodQuadrance = { (touch: UITouch) -> Bool in
+            let prev = touch.precisePreviousLocation(in: self.view)
+            let curr = touch.preciseLocation(in: self.view)
+            let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
+            let quadrance = dx * dx + dy * dy
+            return quadrance >= minQuandrance
+        }
+
         if let coalescedTouches = event.coalescedTouches(for: touch) {
             for ct in coalescedTouches {
                 let vertex = Vertex(
                     location: touch.preciseLocation(in: view!),
-                    force: ct.force,
-                    estimatedProperties: ct.estimatedProperties,
-                    estimatedPropertiesExpectingUpdates: ct.estimatedPropertiesExpectingUpdates)
-                activeStroke!.add(vertex)
+                    thickness: defaultThickness + (ct.force - 1.0) * forceWeight)
+                if goodQuadrance(ct) {
+                    activeStroke!.add(vertex)
+                }
             }
         }
     }
