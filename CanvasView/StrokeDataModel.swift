@@ -40,6 +40,7 @@ extension Vertex: CustomDebugStringConvertible {
 
 class Stroke {
     var vertices: [Vertex] = []
+    var lastDrawnVertex: Int? = nil
 
     func add(_ vertex: Vertex) {
         vertices.append(vertex)
@@ -60,6 +61,13 @@ class Stroke {
         }
 
         return frame.insetBy(dx: -4.0, dy: -4.0)
+    }
+
+    func undrawnVertices() -> ArraySlice<Vertex>? {
+        if let lastDrawnVertex = lastDrawnVertex {
+            return vertices[lastDrawnVertex...]
+        }
+        return nil
     }
 }
 

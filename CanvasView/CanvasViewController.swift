@@ -17,7 +17,7 @@ class CanvasViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        canvasView!.layer.drawsAsynchronously = true
+        canvasView!.layer.drawsAsynchronously = false
     }
 
     override func didReceiveMemoryWarning() {

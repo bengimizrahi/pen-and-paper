@@ -22,26 +22,34 @@ class CanvasView: UIView {
 
         let drawStroke = { (context: CGContext, stroke:Stroke) -> () in
             guard stroke.vertices.count > 0 else { return }
+            if let l = stroke.lastDrawnVertex {
+                guard l + 1 < stroke.vertices.count else { return }
+            }
+
             context.beginPath()
-            context.move(to: stroke.vertices.first!.location)
-            for v in stroke.vertices[1...] {
+            let lastDrawnVertex = stroke.lastDrawnVertex ?? 0
+            context.move(to: stroke.vertices[lastDrawnVertex].location)
+            var c = 0
+            for v in stroke.vertices[(lastDrawnVertex + 1)...] {
                 context.addLine(to: v.location)
+                c += 1
             }
             context.drawPath(using: .stroke)
+            stroke.lastDrawnVertex = stroke.vertices.count - 1
+            print("c: \(c)")
         }
 
 
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-
+        guard let cacheContext = UIGraphicsGetCurrentContext() else { return }
         cachedImage?.draw(in: bounds)
         UIColor.black.set()
         if let activeStroke = activeStroke {
-            drawStroke(context, activeStroke)
+            drawStroke(cacheContext, activeStroke)
         }
         cachedImage = UIGraphicsGetImageFromCurrentImageContext()
-
         UIGraphicsEndImageContext()
+
         cachedImage!.draw(in: bounds)
     }
 
