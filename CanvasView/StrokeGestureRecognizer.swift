@@ -89,10 +89,6 @@ class StrokeGestureRecognizer: UIGestureRecognizer {
         super.touchesCancelled(touches, with: event)
     }
 
-    override func touchesEstimatedPropertiesUpdated(_ touches: Set<UITouch>) {
-        super.touchesEstimatedPropertiesUpdated(touches)
-    }
-
     override func reset() {
         activeStroke = nil
         trackedTouch = nil
