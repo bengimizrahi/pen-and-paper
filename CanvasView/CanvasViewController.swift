@@ -33,11 +33,11 @@ class CanvasViewController: UIViewController {
             activeStroke = gestureRecognizer.activeStroke!
         case .changed:
             draw(stroke: activeStroke!)
+        case .cancelled:
+            fallthrough
         case .ended:
             draw(stroke: activeStroke!)
             strokes.append(activeStroke!)
-        case .cancelled:
-            print("cancelled")
         default:
             print("???")
         }
