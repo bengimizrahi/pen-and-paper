@@ -36,31 +36,30 @@ class CanvasViewController : UIViewController {
         assert(false)
     }
 
-    @IBAction func strokeUpdated(_ gestureRecognizer: UIPanGestureRecognizer) {
-        print("?")
-//        let appendOutstandingVerticesToActiveStroke = {
-//            let vertices = gestureRecognizer.getAndClearOutstandingVertices()
-//            self.activeStroke.append(vertices)
-//        }
-//
-//        switch gestureRecognizer.state {
-//        case .possible:
-//            return
-//        case .began:
-//            fallthrough
-//        case .changed:
-//            appendOutstandingVerticesToActiveStroke()
-//            drawStrokes()
-//        case .cancelled:
-//            fallthrough
-//        case .failed:
-//            fallthrough
-//        case .ended:
-//            appendOutstandingVerticesToActiveStroke()
-//            activeStroke = Stroke()
-//            unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
-//            drawStrokes()
-//        }
+    @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {
+        let appendOutstandingVerticesToActiveStroke = {
+            let vertices = gestureRecognizer.getAndClearOutstandingVertices()
+            self.activeStroke.append(vertices)
+        }
+
+        switch gestureRecognizer.state {
+        case .possible:
+            return
+        case .began:
+            fallthrough
+        case .changed:
+            appendOutstandingVerticesToActiveStroke()
+            drawStrokes()
+        case .cancelled:
+            fallthrough
+        case .failed:
+            fallthrough
+        case .ended:
+            appendOutstandingVerticesToActiveStroke()
+            activeStroke = Stroke()
+            unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
+            drawStrokes()
+        }
     }
 
     func drawStrokes() {

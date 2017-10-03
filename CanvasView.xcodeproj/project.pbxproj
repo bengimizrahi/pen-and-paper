@@ -15,7 +15,6 @@
 		ED3342D41F7A71B30034AB7C /* CanvasViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342D31F7A71B30034AB7C /* CanvasViewTests.swift */; };
 		ED3342E11F7A8E080034AB7C /* StrokeGestureRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342E01F7A8E080034AB7C /* StrokeGestureRecognizer.swift */; };
 		ED407E0E1F7CDD9800655920 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED407E0D1F7CDD9800655920 /* Utility.swift */; };
-		ED4E383C1F841C8E00C3FBEB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ED4E383B1F841C8E00C3FBEB /* Main.storyboard */; };
 		ED6698641F7B8C5A00933191 /* StrokeDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */; };
 /* End PBXBuildFile section */
 
@@ -42,7 +41,6 @@
 		ED3342D51F7A71B30034AB7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ED3342E01F7A8E080034AB7C /* StrokeGestureRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeGestureRecognizer.swift; sourceTree = "<group>"; };
 		ED407E0D1F7CDD9800655920 /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
-		ED4E383B1F841C8E00C3FBEB /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Main.storyboard; sourceTree = "<group>"; };
 		ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeDataModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -91,7 +89,6 @@
 				ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */,
 				ED407E0D1F7CDD9800655920 /* Utility.swift */,
 				ED3342C21F7A71B20034AB7C /* Main.storyboard */,
-				ED4E383B1F841C8E00C3FBEB /* Main.storyboard */,
 				ED3342C51F7A71B20034AB7C /* Assets.xcassets */,
 				ED3342C71F7A71B20034AB7C /* LaunchScreen.storyboard */,
 				ED3342CA1F7A71B20034AB7C /* Info.plist */,
@@ -194,7 +191,6 @@
 				ED3342C91F7A71B20034AB7C /* LaunchScreen.storyboard in Resources */,
 				ED3342C61F7A71B20034AB7C /* Assets.xcassets in Resources */,
 				ED3342C41F7A71B20034AB7C /* Main.storyboard in Resources */,
-				ED4E383C1F841C8E00C3FBEB /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

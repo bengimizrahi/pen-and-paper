@@ -80,15 +80,15 @@ class Stroke {
         }
 
         func draw(on context: CGContext) {
-            context.beginPath()
-            defer { context.drawPath(using: .stroke) }
-
             guard let a = getLastDrawnPoint() else { return }
-            context.move(to: a)
 
+            context.beginPath()
+            context.move(to: a)
             while let (c1, c2, b) = getCurveDataAndAdvance() {
                 context.addCurve(to: b, control1: c1, control2: c2)
             }
+
+            defer { context.drawPath(using: .stroke) }
 
             if stroke.phase == .active { return }
 
