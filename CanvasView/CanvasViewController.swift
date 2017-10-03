@@ -9,16 +9,26 @@
 import UIKit
 
 @IBDesignable
-class CanvasViewController: UIViewController {
+class CanvasViewController : UIViewController {
 
     @IBOutlet weak var canvasView: UIImageView!
 
-    var strokes: [Stroke] = []
-    var activeStroke: Stroke? = nil
+    var strokes = [Stroke]()
+    var unfinishedPainters = [Stroke.StrokePainter]()
+    var activeStroke: Stroke
+
+    required init?(coder aDecoder: NSCoder) {
+        activeStroke = Stroke()
+        unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
+
+        super.init(coder: aDecoder)
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        canvasView!.layer.drawsAsynchronously = false
+        let gestureRecognizer = StrokeGestureRecognizer()
+        gestureRecognizer.addTarget(self, action: #selector(strokeUpdated(_:)))
+        canvasView.addGestureRecognizer(gestureRecognizer)
     }
 
     override func didReceiveMemoryWarning() {
@@ -26,52 +36,51 @@ class CanvasViewController: UIViewController {
         assert(false)
     }
 
-    @IBAction func strokeUpdated(_ gestureRecognizer: StrokeGestureRecognizer) {
-        switch gestureRecognizer.state {
-        case .began:
-            draw(stroke: gestureRecognizer.activeStroke!)
-            activeStroke = gestureRecognizer.activeStroke!
-        case .changed:
-            draw(stroke: activeStroke!)
-        case .cancelled:
-            fallthrough
-        case .ended:
-            draw(stroke: activeStroke!)
-            strokes.append(activeStroke!)
-        default:
-            print("???")
-        }
+    @IBAction func strokeUpdated(_ gestureRecognizer: UIPanGestureRecognizer) {
+        print("?")
+//        let appendOutstandingVerticesToActiveStroke = {
+//            let vertices = gestureRecognizer.getAndClearOutstandingVertices()
+//            self.activeStroke.append(vertices)
+//        }
+//
+//        switch gestureRecognizer.state {
+//        case .possible:
+//            return
+//        case .began:
+//            fallthrough
+//        case .changed:
+//            appendOutstandingVerticesToActiveStroke()
+//            drawStrokes()
+//        case .cancelled:
+//            fallthrough
+//        case .failed:
+//            fallthrough
+//        case .ended:
+//            appendOutstandingVerticesToActiveStroke()
+//            activeStroke = Stroke()
+//            unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
+//            drawStrokes()
+//        }
     }
 
-    func draw(stroke: Stroke) {
-        guard stroke.vertices.count > 0 else { return }
-        if let l = stroke.lastDrawnVertex {
-            guard l + 1 < stroke.vertices.count else { return }
-        }
-
-        let drawStroke = { (context: CGContext, stroke: Stroke) in
-            context.beginPath()
-            context.setLineCap(.round)
-            let lastDrawnVertex = stroke.lastDrawnVertex ?? 0
-            context.move(to: stroke.vertices[lastDrawnVertex].location)
-            for v in stroke.vertices[(lastDrawnVertex + 1)...] {
-                context.setLineWidth(v.thickness)
-                context.addLine(to: v.location)
-            }
-            context.drawPath(using: .stroke)
-            stroke.lastDrawnVertex = stroke.vertices.count - 1
-        }
+    func drawStrokes() {
+        guard !unfinishedPainters.isEmpty else { return }
 
         UIGraphicsBeginImageContextWithOptions(canvasView.bounds.size, false, 0.0)
         canvasView!.image?.draw(in: canvasView!.bounds)
+        defer {
+            canvasView!.image = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+        }
+
         guard let context = UIGraphicsGetCurrentContext() else { return }
         UIColor.black.set()
-        if let activeStroke = activeStroke {
-            drawStroke(context, activeStroke)
-        }
-        canvasView!.image = UIGraphicsGetImageFromCurrentImageContext()
 
-        UIGraphicsEndImageContext()
+        var paintersToRemove = [Int]()
+        for (i, p) in unfinishedPainters.enumerated() {
+            if p.stroke.phase == .done { paintersToRemove.append(i) }
+            p.draw(on: context)
+        }
+        for i in paintersToRemove { unfinishedPainters.remove(at: i) }
     }
 }
-
