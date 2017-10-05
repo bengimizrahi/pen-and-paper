@@ -21,13 +21,7 @@ class CanvasViewTests: XCTestCase {
     }
     
     func testExample() {
-        let v = Vertex(location: CGPoint(x: 0, y: 0), force: 1.0)
-        XCTAssertEqual(v.debugDescription, "Vertex(loc: (0.0, 0.0), force: 1.0, est: , est-exp: ")
-
-        let v2 = Vertex(location: CGPoint(x: 0, y: 0), force: 1.0,
-                       estimatedProperties: [.azimuth],
-                       estimatedPropertiesExpectingUpdates: [.azimuth])
-        XCTAssertEqual(v2.debugDescription, "Vertex(loc: (0.0, 0.0), force: 1.0, est: z, est-exp: z")
+        
     }
     
     func testPerformanceExample() {

@@ -10,69 +10,106 @@ import UIKit
 
 struct Vertex {
     var location: CGPoint
-    var force: CGFloat
-    var estimatedProperties: UITouchProperties
-    var estimatedPropertiesExpectingUpdates: UITouchProperties
+    var thickness: CGFloat
 
-    init(location: CGPoint, force: CGFloat,
-             estimatedProperties: UITouchProperties = [],
-             estimatedPropertiesExpectingUpdates: UITouchProperties = []) {
+    init(location: CGPoint, thickness: CGFloat) {
         self.location = location
-        self.force = force
-        self.estimatedProperties = estimatedProperties
-        self.estimatedPropertiesExpectingUpdates =
-                estimatedPropertiesExpectingUpdates
+        self.thickness = thickness
     }
 }
 
-extension Vertex: CustomDebugStringConvertible {
+extension Vertex : CustomDebugStringConvertible {
     var debugDescription: String {
-        let get_bitset = { (estProp: UITouchProperties) -> String in
-            let l: [(UITouchProperties, String)] =
-                [(.force, "f"), (.azimuth, "z"), (.altitude, "t"), (.location, "l")]
-            return l.reduce("", { s, t in estProp.contains(t.0) ? s + t.1 : s })
-        }
-        return "Vertex(loc: \(location), force: \(force), " +
-                "est: \(get_bitset(estimatedProperties)), " +
-                "est-exp: \(get_bitset(estimatedPropertiesExpectingUpdates))"
+        return "Vertex(loc: \(location), thickness: \(thickness), "
     }
+}
+
+enum StrokePhase {
+    case active
+    case done
 }
 
 class Stroke {
-    var vertices: [Vertex] = []
-    var lastDrawnVertex: Int? = nil
 
-    func add(_ vertex: Vertex) {
-        vertices.append(vertex)
+    var vertices = [Vertex]()
+    var phase: StrokePhase = .active
+
+    func append(_ vertices: [Vertex]) {
+        self.vertices.append(contentsOf: vertices)
     }
 
-    func update(_ vertex: Vertex, at index: Int) {
-        vertices[index] = vertex
-    }
+    class StrokePainter {
 
-    func frame() -> CGRect? {
-        guard vertices.count > 0 else {
-            return nil
+        let stroke: Stroke
+        var idx: Int? = nil
+
+        init(stroke: Stroke) {
+            self.stroke = stroke
         }
 
-        var frame = CGRect(origin: vertices.first!.location, size: CGSize())
-        for v in vertices[1...] {
-            frame = frame.union(CGRect(origin:v.location, size: CGSize()))
+        func getCurveDataAndAdvance() -> (Vertex, Vertex, Vertex)? {
+            guard !self.stroke.vertices.isEmpty else {
+                return nil
+            }
+            idx = idx ?? 0
+            guard idx! + 3 < stroke.vertices.count else { return nil }
+
+            let avg = { (v1: Vertex, v2: Vertex) in
+                return Vertex(location: CGPoint(x: (v1.location.x + v2.location.x) / 2.0,
+                                                y: (v1.location.y + v2.location.y) / 2.0),
+                              thickness: (v1.thickness + v2.thickness) / 2.0)
+            }
+
+            let data = (
+                stroke.vertices[idx!],
+                stroke.vertices[idx! + 1],
+                avg(stroke.vertices[idx! + 1],
+                    stroke.vertices[idx! + 2])
+            )
+            idx! += 2
+            return data
         }
 
-        return frame.insetBy(dx: -4.0, dy: -4.0)
-    }
+        func getLastDrawnPoint() -> Vertex? {
+            guard !stroke.vertices.isEmpty else { return nil }
+            idx = idx ?? 0
 
-    func undrawnVertices() -> ArraySlice<Vertex>? {
-        if let lastDrawnVertex = lastDrawnVertex {
-            return vertices[lastDrawnVertex...]
+            let avg = { (v1: Vertex, v2: Vertex) in
+                return Vertex(location: CGPoint(x: (v1.location.x + v2.location.x) / 2.0,
+                                                y: (v1.location.y + v2.location.y) / 2.0),
+                              thickness: (v1.thickness + v2.thickness) / 2.0)
+            }
+
+            let prevIdx = max(idx! - 1, 0)
+            return avg(stroke.vertices[prevIdx],
+                       stroke.vertices[idx!])
         }
-        return nil
+
+        func draw(on context: CGContext) {
+            guard let a = getLastDrawnPoint() else { return }
+
+            context.beginPath()
+            context.setLineCap(.round)
+            context.move(to: a.location)
+            context.setLineWidth(a.thickness)
+            while let (c1, c2, b) = getCurveDataAndAdvance() {
+                context.addCurve(to: b.location, control1: c1.location, control2: c2.location)
+                context.setLineWidth(b.thickness)
+            }
+
+            defer { context.drawPath(using: .stroke) }
+
+            if stroke.phase == .active { return }
+
+            let pointsLeft = (stroke.vertices.count - 1) - idx!
+            guard pointsLeft > 0 else { return }
+            if pointsLeft == 1 {
+                context.addLine(to: stroke.vertices[idx!].location)
+            } else if pointsLeft == 2 {
+                context.addQuadCurve(to: stroke.vertices[idx! + 1].location,
+                                     control: stroke.vertices[idx!].location)
+            }
+        }
     }
 }
 
-extension Stroke: CustomDebugStringConvertible {
-    var debugDescription: String {
-        return String(describing:vertices)
-    }
-}
