@@ -31,6 +31,8 @@ class CanvasViewController : UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        canvasView.isUserInteractionEnabled = true
+        canvasView.isOpaque = true
         let gestureRecognizer = StrokeGestureRecognizer()
         gestureRecognizer.addTarget(self, action: #selector(strokeUpdated(_:)))
         canvasView.addGestureRecognizer(gestureRecognizer)
