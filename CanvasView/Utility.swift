@@ -30,3 +30,17 @@ class Measure {
         return diff
     }
 }
+
+class LogFunc {
+
+    let funcName: String
+
+    init(_ funcName: String) {
+        self.funcName = funcName
+        print("Entering \(funcName)")
+    }
+
+    deinit {
+        print("Exiting \(funcName)")
+    }
+}

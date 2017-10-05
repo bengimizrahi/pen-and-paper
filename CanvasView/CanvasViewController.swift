@@ -18,10 +18,15 @@ class CanvasViewController : UIViewController {
     var activeStroke: Stroke
 
     required init?(coder aDecoder: NSCoder) {
+        // FIXME: Call createNewStroke() instead!
         activeStroke = Stroke()
         unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
-
         super.init(coder: aDecoder)
+    }
+
+    func createNewStroke() {
+        activeStroke = Stroke()
+        unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
     }
 
     override func viewDidLoad() {
@@ -56,9 +61,9 @@ class CanvasViewController : UIViewController {
             fallthrough
         case .ended:
             appendOutstandingVerticesToActiveStroke()
-            activeStroke = Stroke()
-            unfinishedPainters.append(Stroke.StrokePainter(stroke: activeStroke))
+            activeStroke.phase = .done
             drawStrokes()
+            createNewStroke()
         }
     }
 
@@ -73,8 +78,8 @@ class CanvasViewController : UIViewController {
         }
 
         guard let context = UIGraphicsGetCurrentContext() else { return }
-        UIColor.black.set()
 
+        UIColor.black.set()
         var paintersToRemove = [Int]()
         for (i, p) in unfinishedPainters.enumerated() {
             if p.stroke.phase == .done { paintersToRemove.append(i) }

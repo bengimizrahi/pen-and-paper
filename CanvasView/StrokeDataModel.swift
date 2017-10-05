@@ -48,9 +48,11 @@ class Stroke {
         }
 
         func getCurveDataAndAdvance() -> (CGPoint, CGPoint, CGPoint)? {
-            guard !self.stroke.vertices.isEmpty else { return nil }
+            guard !self.stroke.vertices.isEmpty else {
+                return nil
+            }
             idx = idx ?? 0
-            guard idx! + 3 < self.stroke.vertices.count
+            guard idx! + 3 < stroke.vertices.count
                 else { return nil }
 
             let avg = { (p1: CGPoint, p2: CGPoint) in
@@ -68,7 +70,8 @@ class Stroke {
         }
 
         func getLastDrawnPoint() -> CGPoint? {
-            guard idx != nil else { return nil }
+            guard !stroke.vertices.isEmpty else { return nil }
+            idx = idx ?? 0
 
             let avg = { (p1: CGPoint, p2: CGPoint) in
                 return CGPoint(x: (p1.x + p2.x) / 2.0, y: (p1.y + p2.y) / 2.0)
