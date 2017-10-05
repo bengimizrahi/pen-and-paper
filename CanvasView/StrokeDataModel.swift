@@ -47,48 +47,54 @@ class Stroke {
             self.stroke = stroke
         }
 
-        func getCurveDataAndAdvance() -> (CGPoint, CGPoint, CGPoint)? {
+        func getCurveDataAndAdvance() -> (Vertex, Vertex, Vertex)? {
             guard !self.stroke.vertices.isEmpty else {
                 return nil
             }
             idx = idx ?? 0
-            guard idx! + 3 < stroke.vertices.count
-                else { return nil }
+            guard idx! + 3 < stroke.vertices.count else { return nil }
 
-            let avg = { (p1: CGPoint, p2: CGPoint) in
-                return CGPoint(x: (p1.x + p2.x) / 2.0, y: (p1.y + p2.y) / 2.0)
+            let avg = { (v1: Vertex, v2: Vertex) in
+                return Vertex(location: CGPoint(x: (v1.location.x + v2.location.x) / 2.0,
+                                                y: (v1.location.y + v2.location.y) / 2.0),
+                              thickness: (v1.thickness + v2.thickness) / 2.0)
             }
 
             let data = (
-                stroke.vertices[idx!].location,
-                stroke.vertices[idx! + 1].location,
-                avg(stroke.vertices[idx! + 1].location,
-                    stroke.vertices[idx! + 2].location)
+                stroke.vertices[idx!],
+                stroke.vertices[idx! + 1],
+                avg(stroke.vertices[idx! + 1],
+                    stroke.vertices[idx! + 2])
             )
             idx! += 2
             return data
         }
 
-        func getLastDrawnPoint() -> CGPoint? {
+        func getLastDrawnPoint() -> Vertex? {
             guard !stroke.vertices.isEmpty else { return nil }
             idx = idx ?? 0
 
-            let avg = { (p1: CGPoint, p2: CGPoint) in
-                return CGPoint(x: (p1.x + p2.x) / 2.0, y: (p1.y + p2.y) / 2.0)
+            let avg = { (v1: Vertex, v2: Vertex) in
+                return Vertex(location: CGPoint(x: (v1.location.x + v2.location.x) / 2.0,
+                                                y: (v1.location.y + v2.location.y) / 2.0),
+                              thickness: (v1.thickness + v2.thickness) / 2.0)
             }
 
             let prevIdx = max(idx! - 1, 0)
-            return avg(stroke.vertices[prevIdx].location,
-                       stroke.vertices[idx!].location)
+            return avg(stroke.vertices[prevIdx],
+                       stroke.vertices[idx!])
         }
 
         func draw(on context: CGContext) {
             guard let a = getLastDrawnPoint() else { return }
 
             context.beginPath()
-            context.move(to: a)
+            context.setLineCap(.round)
+            context.move(to: a.location)
+            context.setLineWidth(a.thickness)
             while let (c1, c2, b) = getCurveDataAndAdvance() {
-                context.addCurve(to: b, control1: c1, control2: c2)
+                context.addCurve(to: b.location, control1: c1.location, control2: c2.location)
+                context.setLineWidth(b.thickness)
             }
 
             defer { context.drawPath(using: .stroke) }
