@@ -40,8 +40,10 @@ struct DrawingJob {
         rect = rect!.union(job2.rect!)
     }
 
-    func draw(context: CGContext) {
-        guard valid() else { return }
+    func draw(context: CGContext) -> Vertex? {
+        guard valid() else { return nil }
+
+        var lastDrawnVertex: Vertex? = nil
 
         func beginStroke(_ vertex: Vertex) {
             print("v \(vertex.location)")
@@ -50,11 +52,13 @@ struct DrawingJob {
             context.setLineJoin(.round)
             context.setLineWidth(vertex.thickness)
             context.move(to: vertex.location)
+            lastDrawnVertex = vertex
         }
         func continueStroke(_ vertex: Vertex) {
             print("_ \(vertex.location)")
             context.setLineWidth(vertex.thickness)
             context.addLine(to: vertex.location)
+            lastDrawnVertex = vertex
         }
         func endStroke() {
             print("^")
@@ -81,12 +85,15 @@ struct DrawingJob {
                 }
             }
         }
+
+        return lastDrawnVertex
     }
 }
 
 class CanvasView: UIView {
 
     var outstandingDrawingJob = DrawingJob()
+    var lastDrawnVertex: Vertex? = nil
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -126,8 +133,11 @@ class CanvasView: UIView {
 
         if outstandingDrawingJob.valid() {
             let context = UIGraphicsGetCurrentContext()!
-            outstandingDrawingJob.draw(context: context)
+            let lastDrawnVertex = outstandingDrawingJob.draw(context: context)
             outstandingDrawingJob = DrawingJob()
+            if let last = lastDrawnVertex {
+                outstandingDrawingJob.append(last)
+            }
         }
     }
 
