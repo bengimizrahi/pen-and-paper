@@ -45,27 +45,30 @@ struct DrawingJob {
 
         var lastDrawnVertex: Vertex? = nil
 
+        var path = UIBezierPath()
+        path.lineCapStyle = .round
+        path.lineJoinStyle = .round
+
         func beginStroke(_ vertex: Vertex) {
             print("v \(vertex.location)")
-            context.beginPath()
-            context.setLineCap(.round)
-            context.setLineJoin(.round)
-            context.setLineWidth(vertex.thickness)
-            context.move(to: vertex.location)
+            path.lineWidth = vertex.thickness
+            path.move(to: vertex.location)
             lastDrawnVertex = vertex
         }
         func continueStroke(_ vertex: Vertex) {
             print("_ \(vertex.location)")
-            context.setLineWidth(vertex.thickness)
-            context.addLine(to: vertex.location)
+            path.lineWidth = vertex.thickness
+            path.addLine(to: vertex.location)
             lastDrawnVertex = vertex
         }
         func endStroke() {
             print("^")
-            context.drawPath(using: .stroke)
+            path.stroke()
         }
 
         UIColor.black.set()
+        UIColor.clear.setFill()
+
         print("going to draw \(vertices.count) vertices : \n\t\(vertices)")
         for (idx, v) in vertices.enumerated() {
             if idx == 0 {
@@ -175,7 +178,7 @@ class CanvasView: UIView {
         outstandingDrawingJob.expand(job)
         if job.valid() {
             print("setNeedsDisplay(\(outstandingDrawingJob.rect!))")
-            setNeedsDisplay(outstandingDrawingJob.rect!)
+            layer.setNeedsDisplay(outstandingDrawingJob.rect!)
         }
     }
 }
