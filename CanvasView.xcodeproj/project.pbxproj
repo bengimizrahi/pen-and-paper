@@ -13,7 +13,7 @@
 		ED3342C91F7A71B20034AB7C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = ED3342C71F7A71B20034AB7C /* LaunchScreen.storyboard */; };
 		ED3342D41F7A71B30034AB7C /* CanvasViewTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED3342D31F7A71B30034AB7C /* CanvasViewTests.swift */; };
 		ED407E0E1F7CDD9800655920 /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED407E0D1F7CDD9800655920 /* Utility.swift */; };
-		ED5483211F865883001C4CF2 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED5483201F865883001C4CF2 /* CanvasView.swift */; };
+		ED5483211F865883001C4CF2 /* DeprecatedCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED5483201F865883001C4CF2 /* DeprecatedCanvasView.swift */; };
 		ED5483231F8B56F1001C4CF2 /* TestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED5483221F8B56F1001C4CF2 /* TestView.swift */; };
 		ED5483251F8CEB42001C4CF2 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED5483241F8CEB42001C4CF2 /* ViewController.swift */; };
 		ED6698641F7B8C5A00933191 /* StrokeDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */; };
@@ -40,7 +40,7 @@
 		ED3342D31F7A71B30034AB7C /* CanvasViewTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasViewTests.swift; sourceTree = "<group>"; };
 		ED3342D51F7A71B30034AB7C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ED407E0D1F7CDD9800655920 /* Utility.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
-		ED5483201F865883001C4CF2 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		ED5483201F865883001C4CF2 /* DeprecatedCanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeprecatedCanvasView.swift; sourceTree = "<group>"; };
 		ED5483221F8B56F1001C4CF2 /* TestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestView.swift; sourceTree = "<group>"; };
 		ED5483241F8CEB42001C4CF2 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrokeDataModel.swift; sourceTree = "<group>"; };
@@ -86,7 +86,7 @@
 			isa = PBXGroup;
 			children = (
 				ED3342BE1F7A71B20034AB7C /* AppDelegate.swift */,
-				ED5483201F865883001C4CF2 /* CanvasView.swift */,
+				ED5483201F865883001C4CF2 /* DeprecatedCanvasView.swift */,
 				ED6698631F7B8C5A00933191 /* StrokeDataModel.swift */,
 				ED407E0D1F7CDD9800655920 /* Utility.swift */,
 				ED3342C21F7A71B20034AB7C /* Main.storyboard */,
@@ -214,7 +214,7 @@
 				ED5483251F8CEB42001C4CF2 /* ViewController.swift in Sources */,
 				ED3342BF1F7A71B20034AB7C /* AppDelegate.swift in Sources */,
 				ED5483231F8B56F1001C4CF2 /* TestView.swift in Sources */,
-				ED5483211F865883001C4CF2 /* CanvasView.swift in Sources */,
+				ED5483211F865883001C4CF2 /* DeprecatedCanvasView.swift in Sources */,
 				ED407E0E1F7CDD9800655920 /* Utility.swift in Sources */,
 				ED6698641F7B8C5A00933191 /* StrokeDataModel.swift in Sources */,
 			);

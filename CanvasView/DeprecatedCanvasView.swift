@@ -93,7 +93,7 @@ struct DrawingJob {
     }
 }
 
-class CanvasView: UIView {
+class DeprecatedCanvasView: UIView {
 
     var outstandingDrawingJob = DrawingJob()
     var lastDrawnVertex: Vertex? = nil
