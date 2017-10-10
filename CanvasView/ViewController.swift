@@ -10,17 +10,11 @@ import UIKit
 
 class ViewController: UIViewController {
 
-    @IBOutlet weak var clearButton: UIButton!
-    @IBOutlet weak var testView: TestView!
+    @IBOutlet weak var canvasView: CanvasView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        clearButton.addTarget(self, action: #selector(clearButtonPressed), for: .touchUpInside)
         // Do any additional setup after loading the view.
-    }
-
-    @IBAction func clearButtonPressed() {
-        testView.counter = 0
     }
 
     override func didReceiveMemoryWarning() {

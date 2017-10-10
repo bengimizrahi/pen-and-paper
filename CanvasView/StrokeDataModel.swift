@@ -8,16 +8,9 @@
 
 import UIKit
 
-enum VertexType {
-    case down
-    case intermediate
-    case up
-}
-
 struct Vertex {
     var location: CGPoint
     var thickness: CGFloat
-    var type: VertexType
 }
 
 class Stroke {

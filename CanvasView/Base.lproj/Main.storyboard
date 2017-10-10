@@ -5,7 +5,6 @@
     </device>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13173"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -18,33 +17,22 @@
                         <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uys-fL-B2x" customClass="TestView" customModule="CanvasView" customModuleProvider="target">
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DAq-8H-Gkh" customClass="CanvasView" customModule="CanvasView" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="20" width="834" height="1092"/>
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="BUp-cB-uBc">
-                                        <rect key="frame" x="780" y="8" width="46" height="30"/>
-                                        <state key="normal" title="Button"/>
-                                    </button>
-                                </subviews>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <constraints>
-                                    <constraint firstItem="BUp-cB-uBc" firstAttribute="leading" secondItem="uys-fL-B2x" secondAttribute="leading" constant="780" id="FwX-2K-osb"/>
-                                    <constraint firstItem="BUp-cB-uBc" firstAttribute="top" secondItem="uys-fL-B2x" secondAttribute="topMargin" id="RI1-AW-E4u"/>
-                                </constraints>
                             </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="uys-fL-B2x" secondAttribute="bottom" id="D9o-nQ-KHZ"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="uys-fL-B2x" secondAttribute="trailing" id="ZgA-dA-tUi"/>
-                            <constraint firstItem="uys-fL-B2x" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="bd4-TO-9zZ"/>
-                            <constraint firstItem="uys-fL-B2x" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="wdg-UP-5eC"/>
+                            <constraint firstItem="DAq-8H-Gkh" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="Ibi-kr-imY"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="DAq-8H-Gkh" secondAttribute="bottom" id="O1q-38-NbE"/>
+                            <constraint firstItem="DAq-8H-Gkh" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="ZNl-JE-K2T"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="DAq-8H-Gkh" secondAttribute="trailing" id="s0D-NN-e8b"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
                     <connections>
-                        <outlet property="clearButton" destination="BUp-cB-uBc" id="pCJ-Y9-XnI"/>
-                        <outlet property="testView" destination="uys-fL-B2x" id="Zc3-0D-unY"/>
+                        <outlet property="canvasView" destination="DAq-8H-Gkh" id="WiF-iT-L47"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
