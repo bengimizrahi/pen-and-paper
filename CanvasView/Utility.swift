@@ -11,17 +11,15 @@ import Foundation
 class Measure {
 
     let startTime: Date
-    let reportOnExit: Bool
+    let function: (TimeInterval)->()
 
-    init(reportOnExit: Bool) {
+    init(function: @escaping (_ interval: TimeInterval)->()) {
         startTime = Date()
-        self.reportOnExit = reportOnExit
+        self.function = function
     }
 
     deinit {
-        if reportOnExit {
-            print("Elapsed time: \(timeInterval()) secs")
-        }
+        function(timeInterval())
     }
 
     func timeInterval() -> TimeInterval {
