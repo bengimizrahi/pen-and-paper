@@ -32,17 +32,23 @@ class TestView: UIView {
         let context = UIGraphicsGetCurrentContext()!
         bufferImage!.draw(in: bounds)
         UIColor.black.setFill()
-        let t = touches.first!
-        let c = t.location(in: self)
-        let s: CGFloat = 5.0
-        let r = CGRect(origin: CGPoint(x: c.x - s, y: c.y - s), size: CGSize(width: 2*s, height: 2*s))
-        context.addEllipse(in: r)
-        context.drawPath(using: .fill)
+        var rr: CGRect? = nil
+        var darr = [CGPoint]()
+        for ct in event!.coalescedTouches(for: touches.first!)! {
+            let c = ct.preciseLocation(in: self)
+            darr.append(c)
+            let s: CGFloat = 5.0
+            let r = CGRect(origin: CGPoint(x: c.x - s, y: c.y - s), size: CGSize(width: 2*s, height: 2*s))
+            context.addEllipse(in: r)
+            context.drawPath(using: .fill)
+            rr = (rr == nil) ? r : rr?.union(r)
+        }
+        print(darr)
         if let img = UIGraphicsGetImageFromCurrentImageContext() {
             bufferImage! = img
         }
         UIGraphicsEndImageContext()
-        setNeedsDisplay(r)
+        setNeedsDisplay(rr!)
     }
 
     override func draw(_ rect: CGRect) {
