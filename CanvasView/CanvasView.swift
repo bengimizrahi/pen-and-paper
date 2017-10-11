@@ -85,6 +85,7 @@ class DrawingAgent {
             let vertex = Vertex(location: ct.location(in: view),
                                 thickness: forceToThickness(force: ct.force))
             path.addLine(to: vertex.location)
+            path.lineWidth = vertex.thickness
             expandDirtyRect(with: CGRect(origin: vertex.location, size: CGSize()))
         }
 
