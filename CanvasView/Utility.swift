@@ -6,22 +6,28 @@
 //  Copyright © 2017 Bengi Mizrahi. All rights reserved.
 //
 
-import Foundation
+import UIKit
+
+let minQuandrance: CGFloat = 0.003
+let defaultThickness: CGFloat = 2.0
+let forceWeight: CGFloat = 0.33
+
+func forceToThickness(force: CGFloat) -> CGFloat {
+    return defaultThickness + (force - 1.0) * forceWeight
+}
 
 class Measure {
 
     let startTime: Date
-    let reportOnExit: Bool
+    let function: (TimeInterval)->()
 
-    init(reportOnExit: Bool) {
+    init(function: @escaping (_ interval: TimeInterval)->()) {
         startTime = Date()
-        self.reportOnExit = reportOnExit
+        self.function = function
     }
 
     deinit {
-        if reportOnExit {
-            print("Elapsed time: \(timeInterval()) secs")
-        }
+        function(timeInterval())
     }
 
     func timeInterval() -> TimeInterval {
