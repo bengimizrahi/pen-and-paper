@@ -9,7 +9,7 @@
 import UIKit
 
 let minQuandrance: CGFloat = 0.003
-let defaultThickness: CGFloat = 2.0
+let defaultThickness: CGFloat = 5.0
 let forceWeight: CGFloat = 0.33
 
 func forceToThickness(force: CGFloat) -> CGFloat {
