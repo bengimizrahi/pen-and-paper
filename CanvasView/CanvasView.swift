@@ -8,14 +8,70 @@
 
 import UIKit
 
+protocol DrawDelegate {
+    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect
+}
+
+class CirclePainter : DrawDelegate {
+    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
+        return CGRect()
+    }
+}
+
+class DefaultPainter : DrawDelegate {
+
+    var startingVertex = Vertex(location: CGPoint(),
+                                thickness: CGFloat())
+
+    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
+        assert(touch.phase == .began || touch.phase == .moved)
+
+        // start a bezier path
+        UIColor.black.set()
+        let path = UIBezierPath()
+        path.lineCapStyle = .round
+        path.lineJoinStyle = .round
+
+        var it = event.coalescedTouches(for: touch)!.makeIterator()
+
+        // if touch began, use the first vertex as the starting vertex
+        if touch.phase == .began {
+            let firstTouch = it.next()!
+            startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
+                                    thickness: forceToThickness(force: firstTouch.force))
+        }
+
+        // move to the start vertex
+        path.move(to: startingVertex.location)
+        path.lineWidth = startingVertex.thickness
+        var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
+
+        // add the rest of the vertices to the path
+        while let ct = it.next() {
+            let vertex = Vertex(location: ct.preciseLocation(in: view),
+                                thickness: forceToThickness(force: ct.force))
+            path.addLine(to: vertex.location)
+            path.lineWidth = vertex.thickness
+            dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
+        }
+
+        path.stroke()
+
+        let lastTouch = event.coalescedTouches(for: touch)!.last!
+        startingVertex = Vertex(location: lastTouch.location(in: view),
+                                thickness: forceToThickness(force: lastTouch.force))
+
+        return dirtyRect
+    }
+}
+
 class DrawingAgent {
 
     let bounds: CGRect
     var canvas: UIImage
 
     var dirtyRect: CGRect? = nil
-    var startingVertex = Vertex(location: CGPoint(),
-                                thickness: CGFloat())
+    var drawDelegate = DefaultPainter()
 
     var kpiNumberOfTouches = 0
     var kpiNumberOfTouchHandle = 0.0
@@ -59,41 +115,10 @@ class DrawingAgent {
         // first draw the old canvas into the new one
         canvas.draw(in: bounds)
 
-        // start a bezier path
-        UIColor.black.set()
-        let path = UIBezierPath()
-        path.lineCapStyle = .round
-        path.lineJoinStyle = .round
+        // call the draw delegate
+        let rect = drawDelegate.draw(touch, event, view)
+        expandDirtyRect(with: rect)
 
-        kpiNumberOfTouches += event.coalescedTouches(for: touch)!.count
-        var it = event.coalescedTouches(for: touch)!.makeIterator()
-
-        // if touch began, use the first vertex as the starting vertex
-        if touch.phase == .began {
-            let firstTouch = it.next()!
-            startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
-                                    thickness: forceToThickness(force: firstTouch.force))
-        }
-
-        // move to the start vertex
-        path.move(to: startingVertex.location)
-        path.lineWidth = startingVertex.thickness
-        expandDirtyRect(with: CGRect(origin: startingVertex.location, size: CGSize()))
-
-        // add the rest of the vertices to the path
-        while let ct = it.next() {
-            let vertex = Vertex(location: ct.preciseLocation(in: view),
-                                thickness: forceToThickness(force: ct.force))
-            path.addLine(to: vertex.location)
-            path.lineWidth = vertex.thickness
-            expandDirtyRect(with: CGRect(origin: vertex.location, size: CGSize()))
-        }
-
-        path.stroke()
-
-        let lastTouch = event.coalescedTouches(for: touch)!.last!
-        startingVertex = Vertex(location: lastTouch.location(in: view),
-                                thickness: forceToThickness(force: lastTouch.force))
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
