@@ -115,6 +115,8 @@ class DrawingAgent {
 
 class CanvasView: UIView {
 
+    static let kCornerRadius: CGFloat = 14.0
+
     class StripeLayerDelegate: NSObject, CALayerDelegate {
         func draw(_ layer: CALayer, in ctx: CGContext) {
             let rect = ctx.boundingBoxOfClipPath
@@ -171,6 +173,10 @@ class CanvasView: UIView {
 
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
+
+        layer.masksToBounds = true
+        layer.borderWidth = 0.5
+        layer.cornerRadius = CanvasView.kCornerRadius
     }
 
     deinit {
