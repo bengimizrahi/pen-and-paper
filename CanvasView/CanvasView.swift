@@ -71,7 +71,7 @@ class DrawingAgent {
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
             let firstTouch = it.next()!
-            startingVertex = Vertex(location: firstTouch.location(in: view),
+            startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
                                     thickness: forceToThickness(force: firstTouch.force))
         }
 
@@ -82,7 +82,7 @@ class DrawingAgent {
 
         // add the rest of the vertices to the path
         while let ct = it.next() {
-            let vertex = Vertex(location: ct.location(in: view),
+            let vertex = Vertex(location: ct.preciseLocation(in: view),
                                 thickness: forceToThickness(force: ct.force))
             path.addLine(to: vertex.location)
             path.lineWidth = vertex.thickness
