@@ -14,6 +14,15 @@ class TestView: UIView {
     var bufferImage: UIImage? = nil
     var counter = 0
 
+    var kpiNumberOfTouches = 0
+    var kpiNumberOfTouchHandle = 0.0
+    var kpiNumberOfDrawRect = 0.0
+
+    func printKpi() {
+        let r = kpiNumberOfTouchHandle / kpiNumberOfDrawRect
+        print("#touch: \(kpiNumberOfTouches), ratio: \(r)")
+    }
+    
     func createBuffer(_ size: CGSize) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(size, false, 0.0)
         let image = UIGraphicsGetImageFromCurrentImageContext()
@@ -26,7 +35,9 @@ class TestView: UIView {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let _ = Measure { print("touchesMoved: \($0)") }
+        kpiNumberOfTouchHandle += 1
+        printKpi()
+        //let _ = Measure { print("touchesMoved: \($0)") }
         if bufferImage == nil || counter == 0 {
             bufferImage = createBuffer(bounds.size)
         }
@@ -37,6 +48,7 @@ class TestView: UIView {
         UIColor.black.setFill()
         var rr: CGRect? = nil
         //var darr = [CGPoint]()
+        kpiNumberOfTouches += event!.coalescedTouches(for: touches.first!)!.count
         for ct in event!.coalescedTouches(for: touches.first!)! {
             let c = ct.preciseLocation(in: self)
             //darr.append(c)
@@ -60,7 +72,9 @@ class TestView: UIView {
     }
 
     override func draw(_ rect: CGRect) {
-        let _ = Measure { print("draw: \($0)") }
+        kpiNumberOfDrawRect += 1
+        printKpi()
+        //let _ = Measure { print("draw: \($0)") }
 
         guard let _ = bufferImage else { return }
 

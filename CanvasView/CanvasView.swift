@@ -17,6 +17,17 @@ class DrawingAgent {
     var startingVertex = Vertex(location: CGPoint(),
                                 thickness: CGFloat())
 
+    var kpiNumberOfTouches = 0
+    var kpiNumberOfTouchHandle = 0.0
+    var kpiNumberOfDrawRect = 0.0
+
+    func printKpi() {
+        let r = kpiNumberOfTouchHandle / kpiNumberOfDrawRect
+        print("#touch: \(kpiNumberOfTouches), ratio: \(r)")
+        kpiNumberOfTouchHandle = 0
+        kpiNumberOfDrawRect = 0
+    }
+
     init(bounds: CGRect) {
         self.bounds = bounds
 
@@ -29,9 +40,18 @@ class DrawingAgent {
         dirtyRect = (dirtyRect == nil) ? rect : dirtyRect!.union(rect)
     }
 
-    func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) {
+    func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
+        let rectThatNeedsDisplay = {
+            return self.dirtyRect!.insetBy(dx: -2.0, dy: -2.0)
+        }
+
+        kpiNumberOfTouchHandle += 1
+
         // handle only .began and .moved
-        guard touch.phase == .began || touch.phase == .moved else { return }
+        guard touch.phase == .began || touch.phase == .moved
+            else { return rectThatNeedsDisplay() }
+
+        //let _ = Measure { print("handleTouch: \($0)") }
 
         // start with a new canvas
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
@@ -45,6 +65,7 @@ class DrawingAgent {
         path.lineCapStyle = .round
         path.lineJoinStyle = .round
 
+        kpiNumberOfTouches += event.coalescedTouches(for: touch)!.count
         var it = event.coalescedTouches(for: touch)!.makeIterator()
 
         // if touch began, use the first vertex as the starting vertex
@@ -75,10 +96,15 @@ class DrawingAgent {
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
-        view.setNeedsDisplay(dirtyRect!.insetBy(dx: -2.0, dy: -2.0))
+        return rectThatNeedsDisplay()
     }
 
     func drawRect(_ rect: CGRect) {
+        kpiNumberOfDrawRect += 1
+        printKpi()
+
+        //let _ = Measure { print("drawRect: \($0)") }
+
         let scale = UIScreen.main.scale
         let canvasRect = rect.applying(CGAffineTransform(scaleX: scale, y: scale))
         let subimage = UIImage(cgImage: canvas.cgImage!.cropping(to: canvasRect)!)
@@ -88,9 +114,75 @@ class DrawingAgent {
 }
 
 class CanvasView: UIView {
+
+    static let kCornerRadius: CGFloat = 14.0
+
+    class StripeLayerDelegate: NSObject, CALayerDelegate {
+        func draw(_ layer: CALayer, in ctx: CGContext) {
+            let rect = ctx.boundingBoxOfClipPath
+            let red = CGFloat(drand48())
+            let green = CGFloat(drand48())
+            let blue = CGFloat(drand48())
+            ctx.setFillColor(red: red, green: green, blue: blue, alpha: 0.5)
+            ctx.fill(rect)
+        }
+    }
+
+    class CanvasLayerDelegate: NSObject, CALayerDelegate {
+
+        weak var drawingAgent: DrawingAgent? = nil
+
+        func draw(_ layer: CALayer, in ctx: CGContext) {
+            guard let agent = drawingAgent else { return }
+
+            UIGraphicsPushContext(ctx)
+            agent.drawRect(ctx.boundingBoxOfClipPath)
+            UIGraphicsPopContext()
+        }
+    }
+
+    var stripeLayer: CATiledLayer
+    var canvasLayer: CALayer
+    var stripeLayerDelegate: StripeLayerDelegate
+    var canvasLayerDelegate: CanvasLayerDelegate
     lazy var drawingAgent: DrawingAgent = { [unowned self] in
         return DrawingAgent(bounds: bounds)
     }()
+
+    required init?(coder aDecoder: NSCoder) {
+        stripeLayer = CATiledLayer()
+        canvasLayer = CALayer()
+        stripeLayerDelegate = StripeLayerDelegate()
+        canvasLayerDelegate = CanvasLayerDelegate()
+
+        super.init(coder: aDecoder)
+
+        canvasLayerDelegate.drawingAgent = drawingAgent
+
+        let scale = UIScreen.main.scale
+        stripeLayer.contentsScale = scale
+        canvasLayer.contentsScale = scale
+
+        stripeLayer.frame = bounds
+        canvasLayer.frame = bounds
+
+        stripeLayer.tileSize = CGSize(width: 50.0, height: 50.0)
+
+        stripeLayer.delegate = stripeLayerDelegate
+        canvasLayer.delegate = canvasLayerDelegate
+
+        layer.addSublayer(stripeLayer)
+        layer.addSublayer(canvasLayer)
+
+        layer.masksToBounds = true
+        layer.borderWidth = 0.5
+        layer.cornerRadius = CanvasView.kCornerRadius
+    }
+
+    deinit {
+        stripeLayer.delegate = nil
+        canvasLayer.delegate = nil
+    }
 
     func goodQuadrance(touch: UITouch) -> Bool {
         if touch.phase == .began { return true }
@@ -107,10 +199,7 @@ class CanvasView: UIView {
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
-        drawingAgent.handleTouch(touches.first!, event!, self)
-    }
-
-    override func draw(_ rect: CGRect) {
-        drawingAgent.drawRect(rect)
+        let dirtyRect = canvasLayerDelegate.drawingAgent!.handleTouch(touches.first!, event!, self)
+        canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
