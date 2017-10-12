@@ -157,7 +157,7 @@ class CanvasView: UIView {
 
     static let kCornerRadius: CGFloat = 14.0
 
-    class StripeLayerDelegate: NSObject, CALayerDelegate {
+    class StripeLayer: CATiledLayer, CALayerDelegate {
         func draw(_ layer: CALayer, in ctx: CGContext) {
             let rect = ctx.boundingBoxOfClipPath
             let red = CGFloat(drand48())
@@ -168,8 +168,7 @@ class CanvasView: UIView {
         }
     }
 
-    class CanvasLayerDelegate: NSObject, CALayerDelegate {
-
+    class CanvasLayer: CALayer, CALayerDelegate {
         weak var drawingAgent: DrawingAgent? = nil
 
         func draw(_ layer: CALayer, in ctx: CGContext) {
@@ -181,23 +180,19 @@ class CanvasView: UIView {
         }
     }
 
-    var stripeLayer: CATiledLayer
-    var canvasLayer: CALayer
-    var stripeLayerDelegate: StripeLayerDelegate
-    var canvasLayerDelegate: CanvasLayerDelegate
+    var stripeLayer: StripeLayer
+    var canvasLayer: CanvasLayer
     lazy var drawingAgent: DrawingAgent = { [unowned self] in
         return DrawingAgent(bounds: bounds)
     }()
 
     required init?(coder aDecoder: NSCoder) {
-        stripeLayer = CATiledLayer()
-        canvasLayer = CALayer()
-        stripeLayerDelegate = StripeLayerDelegate()
-        canvasLayerDelegate = CanvasLayerDelegate()
+        stripeLayer = StripeLayer()
+        canvasLayer = CanvasLayer()
 
         super.init(coder: aDecoder)
 
-        canvasLayerDelegate.drawingAgent = drawingAgent
+        canvasLayer.drawingAgent = drawingAgent
 
         let scale = UIScreen.main.scale
         stripeLayer.contentsScale = scale
@@ -208,8 +203,8 @@ class CanvasView: UIView {
 
         stripeLayer.tileSize = CGSize(width: 50.0, height: 50.0)
 
-        stripeLayer.delegate = stripeLayerDelegate
-        canvasLayer.delegate = canvasLayerDelegate
+        stripeLayer.delegate = stripeLayer
+        canvasLayer.delegate = canvasLayer
 
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
@@ -233,13 +228,21 @@ class CanvasView: UIView {
         return quadrance >= minQuandrance
     }
 
+    func resize(size: CGSize) {
+        frame.size = size
+        stripeLayer.frame.size = size
+        stripeLayer.removeAllAnimations()
+        stripeLayer.setNeedsDisplay()
+        canvasLayer.frame.size = size
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesMoved(touches, with: event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
-        let dirtyRect = canvasLayerDelegate.drawingAgent!.handleTouch(touches.first!, event!, self)
+        let dirtyRect = canvasLayer.drawingAgent!.handleTouch(touches.first!, event!, self)
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
