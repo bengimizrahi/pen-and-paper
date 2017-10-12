@@ -69,11 +69,12 @@ class DefaultPainter : DrawDelegate {
             let vertex = Vertex(location: ct.preciseLocation(in: view),
                                 thickness: thickness)
             path.addLine(to: vertex.location)
+            path.stroke()
+            path.move(to: vertex.location)
             path.lineWidth = vertex.thickness
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
         }
 
-        path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
         startingVertex = Vertex(location: lastTouch.location(in: view),
