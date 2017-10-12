@@ -38,6 +38,8 @@ class DefaultPainter : DrawDelegate {
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
         assert(touch.phase == .began || touch.phase == .moved)
 
+        var maxThicknessNoted: CGFloat = 0.0
+
         // start a bezier path
         UIColor.black.set()
         let path = UIBezierPath()
@@ -49,8 +51,10 @@ class DefaultPainter : DrawDelegate {
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
             let firstTouch = it.next()!
+            let thickness = forceToThickness(force: firstTouch.force)
+            maxThicknessNoted = max(maxThicknessNoted, thickness)
             startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
-                                    thickness: forceToThickness(force: firstTouch.force))
+                                    thickness: thickness)
         }
 
         // move to the start vertex
@@ -60,8 +64,10 @@ class DefaultPainter : DrawDelegate {
 
         // add the rest of the vertices to the path
         while let ct = it.next() {
+            let thickness = forceToThickness(force: ct.force)
+            maxThicknessNoted = max(maxThicknessNoted, thickness)
             let vertex = Vertex(location: ct.preciseLocation(in: view),
-                                thickness: forceToThickness(force: ct.force))
+                                thickness: thickness)
             path.addLine(to: vertex.location)
             path.lineWidth = vertex.thickness
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
@@ -73,7 +79,7 @@ class DefaultPainter : DrawDelegate {
         startingVertex = Vertex(location: lastTouch.location(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect.insetBy(dx: -defaultThickness / 2.0, dy: -defaultThickness / 2.0)
+        return dirtyRect.insetBy(dx: -maxThicknessNoted / 2.0, dy: -maxThicknessNoted / 2.0)
     }
 }
 
