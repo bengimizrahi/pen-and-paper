@@ -73,7 +73,7 @@ class DefaultPainter : DrawDelegate {
         startingVertex = Vertex(location: lastTouch.location(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect
+        return dirtyRect.insetBy(dx: -defaultThickness / 2.0, dy: -defaultThickness / 2.0)
     }
 }
 
@@ -109,15 +109,10 @@ class DrawingAgent {
     }
 
     func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        let rectThatNeedsDisplay = {
-            return self.dirtyRect!.insetBy(dx: -2.0, dy: -2.0)
-        }
-
         kpiNumberOfTouchHandle += 1
 
         // handle only .began and .moved
-        guard touch.phase == .began || touch.phase == .moved
-            else { return rectThatNeedsDisplay() }
+        assert(touch.phase == .began || touch.phase == .moved)
 
         //let _ = Measure { print("handleTouch: \($0)") }
 
@@ -134,7 +129,7 @@ class DrawingAgent {
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
-        return rectThatNeedsDisplay()
+        return dirtyRect!
     }
 
     func drawRect(_ rect: CGRect) {
