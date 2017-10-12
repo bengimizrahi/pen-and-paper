@@ -38,6 +38,8 @@ class DefaultPainter : DrawDelegate {
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
         assert(touch.phase == .began || touch.phase == .moved)
 
+        var maxThicknessNoted: CGFloat = 0.0
+
         // start a bezier path
         UIColor.black.set()
         let path = UIBezierPath()
@@ -49,8 +51,10 @@ class DefaultPainter : DrawDelegate {
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
             let firstTouch = it.next()!
+            let thickness = forceToThickness(force: firstTouch.force)
+            maxThicknessNoted = max(maxThicknessNoted, thickness)
             startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
-                                    thickness: forceToThickness(force: firstTouch.force))
+                                    thickness: thickness)
         }
 
         // move to the start vertex
@@ -60,20 +64,23 @@ class DefaultPainter : DrawDelegate {
 
         // add the rest of the vertices to the path
         while let ct = it.next() {
+            let thickness = forceToThickness(force: ct.force)
+            maxThicknessNoted = max(maxThicknessNoted, thickness)
             let vertex = Vertex(location: ct.preciseLocation(in: view),
-                                thickness: forceToThickness(force: ct.force))
+                                thickness: thickness)
             path.addLine(to: vertex.location)
+            path.stroke()
+            path.move(to: vertex.location)
             path.lineWidth = vertex.thickness
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
         }
 
-        path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
         startingVertex = Vertex(location: lastTouch.location(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect
+        return dirtyRect.insetBy(dx: -maxThicknessNoted / 2.0, dy: -maxThicknessNoted / 2.0)
     }
 }
 
@@ -109,15 +116,10 @@ class DrawingAgent {
     }
 
     func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        let rectThatNeedsDisplay = {
-            return self.dirtyRect!.insetBy(dx: -2.0, dy: -2.0)
-        }
-
         kpiNumberOfTouchHandle += 1
 
         // handle only .began and .moved
-        guard touch.phase == .began || touch.phase == .moved
-            else { return rectThatNeedsDisplay() }
+        assert(touch.phase == .began || touch.phase == .moved)
 
         //let _ = Measure { print("handleTouch: \($0)") }
 
@@ -134,7 +136,7 @@ class DrawingAgent {
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
-        return rectThatNeedsDisplay()
+        return dirtyRect!
     }
 
     func drawRect(_ rect: CGRect) {
