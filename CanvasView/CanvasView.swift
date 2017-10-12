@@ -14,7 +14,19 @@ protocol DrawDelegate {
 
 class CirclePainter : DrawDelegate {
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        return CGRect()
+        UIColor.black.setFill()
+        var rr: CGRect? = nil
+        for ct in event.coalescedTouches(for: touch)! {
+            let c = ct.preciseLocation(in: view)
+            let s: CGFloat = 5.0
+            let r = CGRect(origin: CGPoint(x: c.x - s, y: c.y - s),
+                           size: CGSize(width: 2*s, height: 2*s))
+            let context = UIGraphicsGetCurrentContext()!
+            context.addEllipse(in: r)
+            context.drawPath(using: .fill)
+            rr = (rr == nil) ? r : rr?.union(r)
+        }
+        return rr!
     }
 }
 
