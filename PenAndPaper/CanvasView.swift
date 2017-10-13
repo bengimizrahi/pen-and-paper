@@ -160,9 +160,12 @@ class CanvasView: UIView {
     class StripeLayer: CATiledLayer, CALayerDelegate {
         func draw(_ layer: CALayer, in ctx: CGContext) {
             let rect = ctx.boundingBoxOfClipPath
-            let red = CGFloat(drand48())
-            let green = CGFloat(drand48())
-            let blue = CGFloat(drand48())
+            let i = (rect.origin.x / 10.0).truncatingRemainder(dividingBy: 1.0)
+            let red = CGFloat(i)
+            let j = (rect.origin.y / 10.0).truncatingRemainder(dividingBy: 1.0)
+            let green = CGFloat(j)
+            let k = (rect.origin.y / 20.0).truncatingRemainder(dividingBy: 1.0)
+            let blue = CGFloat(k)
             ctx.setFillColor(red: red, green: green, blue: blue, alpha: 0.5)
             ctx.fill(rect)
         }
@@ -208,10 +211,6 @@ class CanvasView: UIView {
 
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
-
-        layer.masksToBounds = true
-        layer.borderWidth = 0.5
-        layer.cornerRadius = CanvasView.kCornerRadius
     }
 
     deinit {
@@ -240,9 +239,15 @@ class CanvasView: UIView {
         touchesMoved(touches, with: event)
     }
 
+    var expand = true
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
         let dirtyRect = canvasLayer.drawingAgent!.handleTouch(touches.first!, event!, self)
         canvasLayer.setNeedsDisplay(dirtyRect)
+        if expand {
+            expand = false
+            resize(size: CGSize(width: bounds.width,
+                                height: bounds.height * 2))
+        }
     }
 }
