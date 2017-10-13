@@ -146,9 +146,14 @@ class DrawingAgent {
         //let _ = Measure { print("drawRect: \($0)") }
 
         let scale = UIScreen.main.scale
-        let canvasRect = rect.applying(CGAffineTransform(scaleX: scale, y: scale))
-        let subimage = UIImage(cgImage: canvas.cgImage!.cropping(to: canvasRect)!)
-        subimage.draw(in: rect)
+        let canvasRectInPoints = CGRect(origin: CGPoint(), size: canvas.size)
+        let rectToDrawInPoints = canvasRectInPoints.intersection(rect)
+        let rectToDrawInPixels = rectToDrawInPoints.applying(CGAffineTransform(scaleX: scale, y: scale))
+
+        if let subCgImage = canvas.cgImage!.cropping(to: rectToDrawInPixels) {
+            let subimage = UIImage(cgImage: subCgImage)
+            subimage.draw(in: rect)
+        }
         dirtyRect = nil
     }
 }
@@ -245,9 +250,8 @@ class CanvasView: UIView {
         let dirtyRect = canvasLayer.drawingAgent!.handleTouch(touches.first!, event!, self)
         canvasLayer.setNeedsDisplay(dirtyRect)
         if expand {
+            resize(size: bounds.size.applying(CGAffineTransform(scaleX: 1.0, y: 2.0)))
             expand = false
-            resize(size: CGSize(width: bounds.width,
-                                height: bounds.height * 2))
         }
     }
 }
