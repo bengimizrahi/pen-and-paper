@@ -114,7 +114,6 @@ class DefaultPainter : DrawDelegate {
     func redraw() {
         UIColor.black.set()
 
-        var c = 0
         func drawStroke(stroke: Stroke) {
             let path = UIBezierPath()
             path.lineCapStyle = .round
@@ -131,9 +130,6 @@ class DefaultPainter : DrawDelegate {
 //                path.lineWidth = vertex.thickness
             }
             path.stroke()
-
-            c += 1
-            print("# of strokes drawn: \(c)")
         }
 
         for stroke in strokeCollection {
@@ -247,8 +243,6 @@ class CanvasView: UIView {
         func draw(_ layer: CALayer, in ctx: CGContext) {
             guard let agent = drawingAgent else { return }
 
-            print("draw: ")
-
             UIGraphicsPushContext(ctx)
             agent.drawRect(ctx.boundingBoxOfClipPath)
             UIGraphicsPopContext()
@@ -337,7 +331,6 @@ class CanvasView: UIView {
 
         let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
         resize(dirtyRect)
-        print("touchesMoved: setNeedsDisplay(rect)")
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
