@@ -86,7 +86,7 @@ class DefaultPainter : DrawDelegate {
 
         // move to the start vertex
         path.move(to: startingVertex.location)
-        path.lineWidth = startingVertex.thickness
+        path.lineWidth = defaultThickness
         currentStroke!.append(vertex: startingVertex)
         var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
 
@@ -97,12 +97,12 @@ class DefaultPainter : DrawDelegate {
             let vertex = Vertex(location: ct.preciseLocation(in: view),
                                 thickness: thickness)
             path.addLine(to: vertex.location)
-            path.stroke()
             path.move(to: vertex.location)
-            path.lineWidth = vertex.thickness
+            //path.lineWidth = defaultThickness
             currentStroke!.append(vertex: vertex)
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
         }
+        path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
         startingVertex = Vertex(location: lastTouch.location(in: view),
@@ -114,7 +114,8 @@ class DefaultPainter : DrawDelegate {
     func redraw() {
         UIColor.black.set()
 
-        for stroke in strokeCollection {
+        var c = 0
+        func drawStroke(stroke: Stroke) {
             let path = UIBezierPath()
             path.lineCapStyle = .round
             path.lineJoinStyle = .round
@@ -123,13 +124,22 @@ class DefaultPainter : DrawDelegate {
 
             let firstVertex = stroke.vertices.first!
             path.move(to: firstVertex.location)
+            path.lineWidth = defaultThickness
             for vertex in stroke.vertices[1...] {
                 path.addLine(to: vertex.location)
-                path.stroke()
                 path.move(to: vertex.location)
-                path.lineWidth = vertex.thickness
+//                path.lineWidth = vertex.thickness
             }
+            path.stroke()
+
+            c += 1
+            print("# of strokes drawn: \(c)")
         }
+
+        for stroke in strokeCollection {
+            drawStroke(stroke: stroke)
+        }
+        drawStroke(stroke: currentStroke!)
     }
 }
 
@@ -234,6 +244,8 @@ class CanvasView: UIView {
         func draw(_ layer: CALayer, in ctx: CGContext) {
             guard let agent = drawingAgent else { return }
 
+            print("draw: ")
+
             UIGraphicsPushContext(ctx)
             agent.drawRect(ctx.boundingBoxOfClipPath)
             UIGraphicsPopContext()
@@ -257,7 +269,7 @@ class CanvasView: UIView {
         let scale = UIScreen.main.scale
         stripeLayer.contentsScale = scale
         canvasLayer.contentsScale = scale
-        canvasLayer.contentsGravity = kCAGravityCenter
+        canvasLayer.contentsGravity = kCAGravityBottom
 
         stripeLayer.frame = bounds
         canvasLayer.frame = bounds
@@ -293,9 +305,13 @@ class CanvasView: UIView {
         }()
         guard dirtyRect.intersects(resizingTriggeringRect) else { return }
 
-        drawingAgent.resize(dirtyRect: dirtyRect)
+        let startTime = Date()
+        self.drawingAgent.resize(dirtyRect: dirtyRect)
+        let endTime = Date()
+        let diff = endTime.timeIntervalSince(startTime)
+        print("delta T: \(diff)")
 
-        let newHeight = dirtyRect.origin.y + dirtyRect.height + DrawingAgent.kOffscreenImageResizingAmount
+        let newHeight = dirtyRect.origin.y + dirtyRect.height + CanvasView.kResizingTriggeringMargin
         let newSize = CGSize(width: bounds.width, height: newHeight)
 
         frame.size = newSize
@@ -317,6 +333,7 @@ class CanvasView: UIView {
         guard goodQuadrance(touch: touches.first!) else { return }
         let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
         resize(dirtyRect)
+        print("touchesMoved: setNeedsDisplay(rect)")
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
