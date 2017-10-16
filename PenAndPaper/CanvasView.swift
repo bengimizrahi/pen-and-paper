@@ -132,7 +132,7 @@ class DrawingAgent {
 
         if let subCgImage = canvas.cgImage!.cropping(to: rectToDrawInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
-            subimage.draw(in: rect)
+            subimage.draw(in: rectToDrawInPoints)
         }
         dirtyRect = nil
     }
