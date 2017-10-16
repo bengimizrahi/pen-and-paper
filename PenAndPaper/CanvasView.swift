@@ -92,17 +92,6 @@ class DrawingAgent {
     var dirtyRect: CGRect? = nil
     var drawDelegate = DefaultPainter()
 
-    var kpiNumberOfTouches = 0
-    var kpiNumberOfTouchHandle = 0.0
-    var kpiNumberOfDrawRect = 0.0
-
-    func printKpi() {
-        let r = kpiNumberOfTouchHandle / kpiNumberOfDrawRect
-        print("#touch: \(kpiNumberOfTouches), ratio: \(r)")
-        kpiNumberOfTouchHandle = 0
-        kpiNumberOfDrawRect = 0
-    }
-
     init(bounds: CGRect) {
         self.bounds = bounds
 
@@ -116,12 +105,8 @@ class DrawingAgent {
     }
 
     func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        kpiNumberOfTouchHandle += 1
-
         // handle only .began and .moved
         assert(touch.phase == .began || touch.phase == .moved)
-
-        //let _ = Measure { print("handleTouch: \($0)") }
 
         // start with a new canvas
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
@@ -140,11 +125,6 @@ class DrawingAgent {
     }
 
     func drawRect(_ rect: CGRect) {
-        kpiNumberOfDrawRect += 1
-        printKpi()
-
-        //let _ = Measure { print("drawRect: \($0)") }
-
         let scale = UIScreen.main.scale
         let canvasRectInPoints = CGRect(origin: CGPoint(), size: canvas.size)
         let rectToDrawInPoints = canvasRectInPoints.intersection(rect)
@@ -159,8 +139,6 @@ class DrawingAgent {
 }
 
 class CanvasView: UIView {
-
-    static let kCornerRadius: CGFloat = 14.0
 
     class StripeLayer: CATiledLayer, CALayerDelegate {
         func draw(_ layer: CALayer, in ctx: CGContext) {
@@ -178,6 +156,10 @@ class CanvasView: UIView {
 
     class CanvasLayer: CALayer, CALayerDelegate {
         weak var drawingAgent: DrawingAgent? = nil
+
+        func resize(_ size: CGSize) {
+
+        }
 
         func draw(_ layer: CALayer, in ctx: CGContext) {
             guard let agent = drawingAgent else { return }
@@ -232,12 +214,12 @@ class CanvasView: UIView {
         return quadrance >= minQuandrance
     }
 
-    func resize(size: CGSize) {
+    func resize(_ size: CGSize) {
         frame.size = size
         stripeLayer.frame.size = size
         stripeLayer.removeAllAnimations()
         stripeLayer.setNeedsDisplay()
-        canvasLayer.frame.size = size
+        canvasLayer.resize(size)
     }
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -250,7 +232,7 @@ class CanvasView: UIView {
         let dirtyRect = canvasLayer.drawingAgent!.handleTouch(touches.first!, event!, self)
         canvasLayer.setNeedsDisplay(dirtyRect)
         if expand {
-            resize(size: bounds.size.applying(CGAffineTransform(scaleX: 1.0, y: 2.0)))
+            resize(bounds.size.applying(CGAffineTransform(scaleX: 1.0, y: 2.0)))
             expand = false
         }
     }
