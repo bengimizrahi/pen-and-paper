@@ -114,7 +114,6 @@ class DefaultPainter : DrawDelegate {
     func redraw() {
         UIColor.black.set()
 
-        var c = 0
         func drawStroke(stroke: Stroke) {
             let path = UIBezierPath()
             path.lineCapStyle = .round
@@ -131,9 +130,6 @@ class DefaultPainter : DrawDelegate {
 //                path.lineWidth = vertex.thickness
             }
             path.stroke()
-
-            c += 1
-            print("# of strokes drawn: \(c)")
         }
 
         for stroke in strokeCollection {
@@ -171,7 +167,10 @@ class DrawingAgent {
 
         let newBounds = { () -> CGRect in
             var b = self.bounds
-            b.size.height += DrawingAgent.kOffscreenImageResizingAmount
+            let n = CGFloat(Int((dirtyRect.origin.y + dirtyRect.height) /
+                    DrawingAgent.kOffscreenImageResizingAmount))
+            let newHeight = (n + 1) * DrawingAgent.kOffscreenImageResizingAmount
+            b.size.height = newHeight
             return b
         }()
         bounds = newBounds
@@ -243,8 +242,6 @@ class CanvasView: UIView {
 
         func draw(_ layer: CALayer, in ctx: CGContext) {
             guard let agent = drawingAgent else { return }
-
-            print("draw: ")
 
             UIGraphicsPushContext(ctx)
             agent.drawRect(ctx.boundingBoxOfClipPath)
@@ -331,9 +328,9 @@ class CanvasView: UIView {
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
+
         let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
         resize(dirtyRect)
-        print("touchesMoved: setNeedsDisplay(rect)")
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
