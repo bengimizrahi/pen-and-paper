@@ -108,7 +108,7 @@ class DefaultPainter : DrawDelegate {
         startingVertex = Vertex(location: lastTouch.location(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect.insetBy(dx: -maxThicknessNoted / 2.0, dy: -maxThicknessNoted / 2.0)
+        return dirtyRect.insetBy(dx: -defaultThickness, dy: -defaultThickness)
     }
 
     func redraw() {
@@ -158,12 +158,8 @@ class DrawingAgent {
     }
 
     func resize(dirtyRect: CGRect) {
-        let resizingTriggeringRect = { () -> CGRect in
-            var rect = bounds
-            rect.origin.y = bounds.height - CanvasView.kResizingTriggeringMargin
-            return rect
-        }()
-        guard dirtyRect.intersects(resizingTriggeringRect) else { return }
+        let resizingTriggeringEdge = bounds.height - CanvasView.kResizingTriggeringMargin
+        guard dirtyRect.maxY >= resizingTriggeringEdge else { return }
 
         let newBounds = { () -> CGRect in
             var b = self.bounds
@@ -173,11 +169,12 @@ class DrawingAgent {
             b.size.height = newHeight
             return b
         }()
-        bounds = newBounds
+        guard newBounds != bounds else { return }
 
         UIGraphicsBeginImageContextWithOptions(newBounds.size, false, 0.0)
-        drawDelegate.redraw()
+        canvas.draw(in: bounds)
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        bounds = newBounds
         UIGraphicsEndImageContext()
     }
 
@@ -295,18 +292,10 @@ class CanvasView: UIView {
     }
 
     func resize(_ dirtyRect: CGRect) {
-        let resizingTriggeringRect = { () -> CGRect in
-            var rect = bounds
-            rect.origin.y = bounds.height - CanvasView.kResizingTriggeringMargin
-            return rect
-        }()
-        guard dirtyRect.intersects(resizingTriggeringRect) else { return }
+        let resizingTriggeringHeight = bounds.height - CanvasView.kResizingTriggeringMargin
+        guard dirtyRect.maxY >= resizingTriggeringHeight else { return }
 
-        let startTime = Date()
         self.drawingAgent.resize(dirtyRect: dirtyRect)
-        let endTime = Date()
-        let diff = endTime.timeIntervalSince(startTime)
-        print("delta T: \(diff)")
 
         let newHeight = dirtyRect.origin.y + dirtyRect.height + CanvasView.kResizingTriggeringMargin
         let newSize = CGSize(width: bounds.width, height: newHeight)
@@ -314,7 +303,6 @@ class CanvasView: UIView {
         frame.size = newSize
         canvasLayer.frame.size = newSize
         stripeLayer.frame.size = newSize
-
 
         canvasLayer.setNeedsDisplay()
         canvasLayer.removeAllAnimations()
@@ -329,8 +317,14 @@ class CanvasView: UIView {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
 
+        let cts = event!.coalescedTouches(for: touches.first!)!
+        let boundingBox = BoundingBox()
+        for t in cts {
+            boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
+                                            size: CGSize()))
+        }
+        resize(boundingBox.box!)
         let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-        resize(dirtyRect)
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }

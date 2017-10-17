@@ -50,3 +50,12 @@ class LogFunc {
         print("Exiting \(funcName)")
     }
 }
+
+class BoundingBox {
+    var box: CGRect? = nil
+
+    func expand(with rect: CGRect) {
+        box = (box == nil) ? rect : box!.union(rect)
+    }
+}
+
