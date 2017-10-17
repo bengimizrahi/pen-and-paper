@@ -65,8 +65,6 @@ class DefaultPainter : DrawDelegate {
         // start a bezier path
         UIColor.black.set()
         let path = UIBezierPath()
-        path.lineCapStyle = .round
-        path.lineJoinStyle = .round
 
         var it = event.coalescedTouches(for: touch)!.makeIterator()
 
@@ -86,7 +84,7 @@ class DefaultPainter : DrawDelegate {
 
         // move to the start vertex
         path.move(to: startingVertex.location)
-        path.lineWidth = defaultThickness
+        path.lineWidth = startingVertex.thickness
         currentStroke!.append(vertex: startingVertex)
         var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
 
@@ -97,18 +95,18 @@ class DefaultPainter : DrawDelegate {
             let vertex = Vertex(location: ct.preciseLocation(in: view),
                                 thickness: thickness)
             path.addLine(to: vertex.location)
+            path.stroke()
             path.move(to: vertex.location)
-            //path.lineWidth = defaultThickness
+            path.lineWidth = vertex.thickness
             currentStroke!.append(vertex: vertex)
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
         }
-        path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
-        startingVertex = Vertex(location: lastTouch.location(in: view),
+        startingVertex = Vertex(location: lastTouch.preciseLocation(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect.insetBy(dx: -defaultThickness, dy: -defaultThickness)
+        return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
     }
 
     func redraw() {
@@ -116,20 +114,18 @@ class DefaultPainter : DrawDelegate {
 
         func drawStroke(stroke: Stroke) {
             let path = UIBezierPath()
-            path.lineCapStyle = .round
-            path.lineJoinStyle = .round
 
             assert(stroke.vertices.count > 0)
 
             let firstVertex = stroke.vertices.first!
             path.move(to: firstVertex.location)
-            path.lineWidth = defaultThickness
+            path.lineWidth = firstVertex.thickness
             for vertex in stroke.vertices[1...] {
                 path.addLine(to: vertex.location)
+                path.stroke()
                 path.move(to: vertex.location)
-//                path.lineWidth = vertex.thickness
+                path.lineWidth = vertex.thickness
             }
-            path.stroke()
         }
 
         for stroke in strokeCollection {
