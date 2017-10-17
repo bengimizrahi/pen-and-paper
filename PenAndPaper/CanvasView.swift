@@ -171,10 +171,10 @@ class DrawingAgent {
         }()
         guard newBounds != bounds else { return }
 
-        bounds = newBounds
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-        drawDelegate.redraw()
+        UIGraphicsBeginImageContextWithOptions(newBounds.size, false, 0.0)
+        canvas.draw(in: bounds)
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        bounds = newBounds
         UIGraphicsEndImageContext()
     }
 
@@ -317,8 +317,14 @@ class CanvasView: UIView {
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard goodQuadrance(touch: touches.first!) else { return }
 
+        let cts = event!.coalescedTouches(for: touches.first!)!
+        let boundingBox = BoundingBox()
+        for t in cts {
+            boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
+                                            size: CGSize()))
+        }
+        resize(boundingBox.box!)
         let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-        resize(dirtyRect)
         canvasLayer.setNeedsDisplay(dirtyRect)
     }
 }
