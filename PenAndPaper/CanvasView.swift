@@ -215,18 +215,25 @@ class DrawingAgent {
 class CanvasView: UIView {
 
     static let kResizingTriggeringMargin: CGFloat = 20.0
+    static let kInterBaselineDistance: CGFloat = 40.0
+    static let kBaselineColor = UIColor(red: 179.0 / 255.0,
+                                        green: 223.0 / 255.0,
+                                        blue: 251.0 / 255.0,
+                                        alpha: 1.0)
 
     class StripeLayer: CATiledLayer, CALayerDelegate {
         func draw(_ layer: CALayer, in ctx: CGContext) {
+            UIGraphicsPushContext(ctx)
             let rect = ctx.boundingBoxOfClipPath
-            let i = (rect.origin.x / 10.0).truncatingRemainder(dividingBy: 1.0)
-            let red = CGFloat(i)
-            let j = (rect.origin.y / 10.0).truncatingRemainder(dividingBy: 1.0)
-            let green = CGFloat(j)
-            let k = (rect.origin.y / 20.0).truncatingRemainder(dividingBy: 1.0)
-            let blue = CGFloat(k)
-            ctx.setFillColor(red: red, green: green, blue: blue, alpha: 0.5)
-            ctx.fill(rect)
+
+            let path = UIBezierPath()
+            kBaselineColor.set()
+            let baselineY = rect.minY + kInterBaselineDistance - 1.5
+            path.move(to: CGPoint(x: rect.minX, y: baselineY))
+            path.addLine(to: CGPoint(x: rect.maxX, y: baselineY))
+            path.lineWidth = 0.5
+            path.stroke()
+            UIGraphicsPopContext()
         }
     }
 
@@ -264,7 +271,10 @@ class CanvasView: UIView {
         stripeLayer.frame = bounds
         canvasLayer.frame = bounds
 
-        stripeLayer.tileSize = CGSize(width: 100.0, height: 100.0)
+        stripeLayer.tileSize = CGSize(
+                width: bounds.width,
+                height: CanvasView.kInterBaselineDistance).applying(
+                    CGAffineTransform(scaleX: scale, y: scale))
 
         stripeLayer.delegate = stripeLayer
         canvasLayer.delegate = canvasLayer
