@@ -105,7 +105,7 @@ class DefaultPainter : DrawDelegate {
         path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
-        startingVertex = Vertex(location: lastTouch.location(in: view),
+        startingVertex = Vertex(location: lastTouch.preciseLocation(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
         return dirtyRect.insetBy(dx: -defaultThickness, dy: -defaultThickness)
