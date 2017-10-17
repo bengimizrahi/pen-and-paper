@@ -86,7 +86,7 @@ class DefaultPainter : DrawDelegate {
 
         // move to the start vertex
         path.move(to: startingVertex.location)
-        path.lineWidth = defaultThickness
+        path.lineWidth = startingVertex.thickness
         currentStroke!.append(vertex: startingVertex)
         var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
 
@@ -97,18 +97,18 @@ class DefaultPainter : DrawDelegate {
             let vertex = Vertex(location: ct.preciseLocation(in: view),
                                 thickness: thickness)
             path.addLine(to: vertex.location)
+            path.stroke()
             path.move(to: vertex.location)
-            //path.lineWidth = defaultThickness
+            path.lineWidth = vertex.thickness
             currentStroke!.append(vertex: vertex)
             dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
         }
-        path.stroke()
 
         let lastTouch = event.coalescedTouches(for: touch)!.last!
         startingVertex = Vertex(location: lastTouch.preciseLocation(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect.insetBy(dx: -defaultThickness, dy: -defaultThickness)
+        return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
     }
 
     func redraw() {
@@ -123,13 +123,13 @@ class DefaultPainter : DrawDelegate {
 
             let firstVertex = stroke.vertices.first!
             path.move(to: firstVertex.location)
-            path.lineWidth = defaultThickness
+            path.lineWidth = firstVertex.thickness
             for vertex in stroke.vertices[1...] {
                 path.addLine(to: vertex.location)
+                path.stroke()
                 path.move(to: vertex.location)
-//                path.lineWidth = vertex.thickness
+                path.lineWidth = vertex.thickness
             }
-            path.stroke()
         }
 
         for stroke in strokeCollection {
