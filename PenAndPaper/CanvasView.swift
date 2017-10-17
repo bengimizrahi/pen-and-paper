@@ -65,8 +65,6 @@ class DefaultPainter : DrawDelegate {
         // start a bezier path
         UIColor.black.set()
         let path = UIBezierPath()
-        path.lineCapStyle = .round
-        path.lineJoinStyle = .round
 
         var it = event.coalescedTouches(for: touch)!.makeIterator()
 
@@ -116,8 +114,6 @@ class DefaultPainter : DrawDelegate {
 
         func drawStroke(stroke: Stroke) {
             let path = UIBezierPath()
-            path.lineCapStyle = .round
-            path.lineJoinStyle = .round
 
             assert(stroke.vertices.count > 0)
 
