@@ -108,7 +108,7 @@ class DefaultPainter : DrawDelegate {
         startingVertex = Vertex(location: lastTouch.location(in: view),
                                 thickness: forceToThickness(force: lastTouch.force))
 
-        return dirtyRect.insetBy(dx: -maxThicknessNoted / 2.0, dy: -maxThicknessNoted / 2.0)
+        return dirtyRect.insetBy(dx: -defaultThickness, dy: -defaultThickness)
     }
 
     func redraw() {
