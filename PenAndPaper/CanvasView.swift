@@ -85,12 +85,12 @@ class DefaultPainter : DrawDelegate {
             startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
                                     thickness: thickness)
             currentStroke = Stroke()
+            currentStroke!.append(vertex: startingVertex)
         }
 
         // move to the start vertex
         path.move(to: startingVertex.location)
         path.lineWidth = startingVertex.thickness
-        currentStroke!.append(vertex: startingVertex)
         var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
 
         // add the rest of the vertices to the path
