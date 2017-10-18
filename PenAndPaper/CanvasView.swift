@@ -43,6 +43,10 @@ class CirclePainter : DrawDelegate {
         return rr!
     }
 
+    func erase(rect: CGRect) {
+
+    }
+
     func redraw() {
         for p in points {
             drawCircle(at: circleRect(at: p))
@@ -107,6 +111,19 @@ class DefaultPainter : DrawDelegate {
                                 thickness: forceToThickness(force: lastTouch.force))
 
         return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
+    }
+
+    func erase(at point: CGPoint) -> Bool {
+        var markedStrokes = [Int]()
+        for (idx, stroke) in strokeCollection.enumerated() {
+            if stroke.overlaps(with: point) {
+                markedStrokes.append(idx)
+            }
+        }
+        for idx in markedStrokes.reversed() {
+            strokeCollection.remove(at: idx)
+        }
+        return !markedStrokes.isEmpty
     }
 
     func redraw() {
@@ -196,6 +213,15 @@ class DrawingAgent {
         UIGraphicsEndImageContext()
 
         return dirtyRect!
+    }
+
+    func handleErase(at point: CGPoint) -> Bool {
+        let erased = drawDelegate.erase(at: point)
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+        drawDelegate.redraw()
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return erased
     }
 
     func drawRect(_ rect: CGRect) {
@@ -329,8 +355,19 @@ class CanvasView: UIView {
             boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
                                             size: CGSize()))
         }
-        resize(boundingBox.box!)
-        let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-        canvasLayer.setNeedsDisplay(dirtyRect)
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        let eraserEnabled = delegate.eraserMode
+        if eraserEnabled == false {
+            resize(boundingBox.box!)
+            let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
+            canvasLayer.setNeedsDisplay(dirtyRect)
+        } else {
+            let erasePoint = touches.first!.preciseLocation(in: self)
+            let erased = drawingAgent.handleErase(at: erasePoint)
+            if erased {
+                canvasLayer.setNeedsDisplay()
+            }
+        }
+    }
     }
 }

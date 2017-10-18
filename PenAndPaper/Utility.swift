@@ -16,6 +16,7 @@ func forceToThickness(force: CGFloat) -> CGFloat {
     return defaultThickness + (force - 1.0) * forceWeight
 }
 
+
 class Measure {
 
     let startTime: Date
@@ -59,3 +60,24 @@ class BoundingBox {
     }
 }
 
+func distance(from point: CGPoint, to line:(CGPoint, CGPoint)) -> CGFloat {
+    // Reference: http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
+
+    let (x0, y0) = (Double(point.x), Double(point.y))
+    let (x1, y1) = (Double(line.0.x), Double(line.0.y))
+    let (x2, y2) = (Double(line.1.x), Double(line.1.y))
+    print("(\(x1),\(y1))---------(\(x2),\(y2)) & (\(x0),\(y0))")
+    let nominator = abs(((x2 - x1) * (y1 - y0)) - ((x1 - x0) * (y2 - y1)))
+    let denominator = sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)))
+    let dist = nominator / denominator
+    print ("dist: \(dist) (\(nominator)/\(denominator))")
+    return CGFloat(dist)
+}
+
+func distance(from point0: CGPoint, to point1: CGPoint) -> CGFloat {
+    let (x0, y0) = (Double(point0.x), Double(point0.y))
+    let (x1, y1) = (Double(point1.x), Double(point1.y))
+
+    let dist = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
+    return CGFloat(dist)
+}
