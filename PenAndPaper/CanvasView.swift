@@ -360,7 +360,10 @@ class CanvasView: UIView {
             let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
             canvasLayer.setNeedsDisplay(dirtyRect)
         } else {
-            let erasePoint = touches.first!.preciseLocation(in: self)
+            guard let t = touches.first, (t.phase == .began || t.phase == .moved)
+                else { return }
+
+            let erasePoint = t.preciseLocation(in: self)
             let erased = drawingAgent.handleErase(at: erasePoint)
             if erased {
                 canvasLayer.setNeedsDisplay()
