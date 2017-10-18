@@ -372,10 +372,10 @@ class CanvasView: UIView {
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let _ = drawingAgent.handleTouch(touches.first!, event!, self)
+        touchesMoved(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        let _ = drawingAgent.handleTouch(touches.first!, event!, self)
+        touchesMoved(touches, with: event)
     }
 }
