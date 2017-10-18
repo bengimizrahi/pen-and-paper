@@ -30,6 +30,7 @@ class Stroke {
         for i in 0 ..< vertices.count - 1 {
             let v0 = vertices[i].location
             let v1 = vertices[i + 1].location
+
             if distance(from: point, to: (v0, v1)) <= kOverlapRegionWidth {
                 return true
             }
