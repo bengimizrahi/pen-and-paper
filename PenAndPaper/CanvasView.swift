@@ -70,6 +70,13 @@ class DefaultPainter : DrawDelegate {
 
         var it = event.coalescedTouches(for: touch)!.makeIterator()
 
+        if touch.phase == .cancelled || touch.phase == .ended {
+            if let completedStroke = currentStroke {
+                strokeCollection.append(completedStroke)
+            }
+            return CGRect()
+        }
+
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
             let firstTouch = it.next()!
@@ -77,10 +84,6 @@ class DefaultPainter : DrawDelegate {
             maxThicknessNoted = max(maxThicknessNoted, thickness)
             startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
                                     thickness: thickness)
-
-            if let completedStroke = currentStroke {
-                strokeCollection.append(completedStroke)
-            }
             currentStroke = Stroke()
         }
 
