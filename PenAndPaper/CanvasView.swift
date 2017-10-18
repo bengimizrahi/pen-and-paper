@@ -62,8 +62,6 @@ class DefaultPainter : DrawDelegate {
                                 thickness: CGFloat())
 
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        assert(touch.phase == .began || touch.phase == .moved)
-
         var maxThicknessNoted: CGFloat = 0.0
 
         // start a bezier path
@@ -196,9 +194,6 @@ class DrawingAgent {
     }
 
     func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        // handle only .began and .moved
-        assert(touch.phase == .began || touch.phase == .moved)
-
         // start with a new canvas
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
 
