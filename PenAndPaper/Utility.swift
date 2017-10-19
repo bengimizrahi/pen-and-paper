@@ -60,6 +60,53 @@ class BoundingBox {
     }
 }
 
+func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
+    // Reference: https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/
+
+    func boundingBoxesIntersect(a: CGRect, b: CGRect) -> Bool {
+        return a.minX <= b.maxX &&
+                b.minX <= a.maxX &&
+                a.minY <= b.maxY &&
+                b.minY <= a.maxY
+    }
+
+    func crossProduct(a: CGPoint, b: CGPoint) -> CGFloat {
+        return a.x * b.y - b.x * a.y
+    }
+
+    let epsilon = 0.000001
+
+    func pointOnLine(p: CGPoint, l: (CGPoint, CGPoint)) -> Bool {
+        let (p1, p2) = l
+        let translate = CGAffineTransform(translationX: -p1.x, y: -p1.y)
+        let translatedLine = (p1.applying(translate), p2.applying(translate))
+        return abs(Double(crossProduct(a: p, b: translatedLine.1))) <= epsilon
+    }
+
+    func pointRightOfLine(p: CGPoint, l: (CGPoint, CGPoint)) -> Bool {
+        let (p1, p2) = l
+        let translate = CGAffineTransform(translationX: -p1.x, y: -p1.y)
+        let translatedLine = (p1.applying(translate), p2.applying(translate))
+        return abs(Double(crossProduct(a: p, b: translatedLine.1))) < 0
+    }
+
+    func lineSegmentTouchesOrCrossesLine(l: (CGPoint, CGPoint), ls: (CGPoint, CGPoint)) -> Bool {
+        return pointOnLine(p: ls.0, l: l) || pointOnLine(p: ls.1, l: l) ||
+                (pointRightOfLine(p: ls.0, l: l) != pointRightOfLine(p: ls.1, l: l))
+    }
+
+    let boxA = CGRect(x: min(a.0.x, a.1.x), y: min(a.0.y, a.1.y),
+                      width: CGFloat(abs(Double(a.0.x - a.1.x))),
+                      height: CGFloat(abs(Double(a.0.y - a.1.y))))
+    let boxB = CGRect(x: min(b.0.x, b.1.x), y: min(b.0.y, b.1.y),
+                      width: CGFloat(abs(Double(b.0.x - b.1.x))),
+                      height: CGFloat(abs(Double(b.0.y - b.1.y))))
+
+    return boundingBoxesIntersect(a: boxA, b: boxB) &&
+        lineSegmentTouchesOrCrossesLine(l: a, ls: b) &&
+        lineSegmentTouchesOrCrossesLine(l: b, ls: a)
+}
+
 func distance(from point: CGPoint, to line:(CGPoint, CGPoint)) -> CGFloat {
     // Reference: http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
 
