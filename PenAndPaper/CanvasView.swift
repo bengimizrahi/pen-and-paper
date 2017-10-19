@@ -114,13 +114,29 @@ class DefaultPainter : DrawDelegate {
         return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
     }
 
-    func erase(at point: CGPoint) -> Bool {
+    func erase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
         var markedStrokes = [Int]()
+
+        var touches = event.coalescedTouches(for: touch)!
         for (idx, stroke) in strokeCollection.enumerated() {
-            if stroke.overlaps(with: point) {
-                markedStrokes.append(idx)
+            if touches.count == 1 {
+                let a = touches.first!.preciseLocation(in: view).applying(
+                        CGAffineTransform(translationX: -0.5, y: 0.0))
+                let b = a.applying(CGAffineTransform(translationX: 1.0, y: 0.0))
+                if stroke.crosses(with: (a, b)) {
+                    markedStrokes.append(idx)
+                }
+            } else {
+                for idx in 0 ..< touches.count - 1 {
+                    let a = touches[idx].preciseLocation(in: view)
+                    let b = touches[idx + 1].preciseLocation(in: view)
+                    if stroke.crosses(with: (a, b)) {
+                        markedStrokes.append(idx)
+                    }
+                }
             }
         }
+
         for idx in markedStrokes.reversed() {
             strokeCollection.remove(at: idx)
         }
@@ -213,8 +229,8 @@ class DrawingAgent {
         return dirtyRect!
     }
 
-    func handleErase(at point: CGPoint) -> Bool {
-        let erased = drawDelegate.erase(at: point)
+    func handleErase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
+        let erased = drawDelegate.erase(touch, event, view)
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
         drawDelegate.redraw()
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
@@ -363,8 +379,7 @@ class CanvasView: UIView {
             guard let t = touches.first, (t.phase == .began || t.phase == .moved)
                 else { return }
 
-            let erasePoint = t.preciseLocation(in: self)
-            let erased = drawingAgent.handleErase(at: erasePoint)
+            let erased = drawingAgent.handleErase(touches.first!, event!, self)
             if erased {
                 canvasLayer.setNeedsDisplay()
             }

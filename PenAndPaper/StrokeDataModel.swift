@@ -22,6 +22,25 @@ class Stroke {
         vertices.append(vertex)
     }
 
+    func crosses(with line: (CGPoint, CGPoint)) -> Bool {
+        if vertices.count == 1 {
+            let v0 = vertices.first!.location.applying(CGAffineTransform(translationX: 0.0, y: -0.5))
+            let v1 = v0.applying(CGAffineTransform(translationX: 0.0, y: 1.0))
+            return linesIntersect(a: line, b: (v0, v1))
+        }
+
+        for idx in 0 ..< vertices.count - 1 {
+            let v0 = vertices[idx].location
+            let v1 = vertices[idx + 1].location
+
+            if linesIntersect(a: line, b: (v0, v1)) {
+                return true
+            }
+        }
+
+        return false
+    }
+
     func overlaps(with point:CGPoint) -> Bool {
         if vertices.count == 1 {
             return distance(from: vertices.first!.location, to: point) <= kOverlapRegionWidth
