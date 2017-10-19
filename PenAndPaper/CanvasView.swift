@@ -73,6 +73,7 @@ class DefaultPainter : DrawDelegate {
         if touch.phase == .cancelled || touch.phase == .ended {
             if let completedStroke = currentStroke {
                 strokeCollection.append(completedStroke)
+                currentStroke = nil
             }
             return CGRect()
         }
@@ -165,7 +166,9 @@ class DefaultPainter : DrawDelegate {
         for stroke in strokeCollection {
             drawStroke(stroke: stroke)
         }
-        drawStroke(stroke: currentStroke!)
+        if let currentStroke = currentStroke {
+            drawStroke(stroke: currentStroke)
+        }
     }
 }
 
