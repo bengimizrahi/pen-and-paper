@@ -43,6 +43,10 @@ class CirclePainter : DrawDelegate {
         return rr!
     }
 
+    func erase(rect: CGRect) {
+
+    }
+
     func redraw() {
         for p in points {
             drawCircle(at: circleRect(at: p))
@@ -58,8 +62,6 @@ class DefaultPainter : DrawDelegate {
                                 thickness: CGFloat())
 
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        assert(touch.phase == .began || touch.phase == .moved)
-
         var maxThicknessNoted: CGFloat = 0.0
 
         // start a bezier path
@@ -68,6 +70,14 @@ class DefaultPainter : DrawDelegate {
 
         var it = event.coalescedTouches(for: touch)!.makeIterator()
 
+        if touch.phase == .cancelled || touch.phase == .ended {
+            if let completedStroke = currentStroke {
+                strokeCollection.append(completedStroke)
+                currentStroke = nil
+            }
+            return CGRect()
+        }
+
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
             let firstTouch = it.next()!
@@ -75,17 +85,13 @@ class DefaultPainter : DrawDelegate {
             maxThicknessNoted = max(maxThicknessNoted, thickness)
             startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
                                     thickness: thickness)
-
-            if let completedStroke = currentStroke {
-                strokeCollection.append(completedStroke)
-            }
             currentStroke = Stroke()
+            currentStroke!.append(vertex: startingVertex)
         }
 
         // move to the start vertex
         path.move(to: startingVertex.location)
         path.lineWidth = startingVertex.thickness
-        currentStroke!.append(vertex: startingVertex)
         var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
 
         // add the rest of the vertices to the path
@@ -107,6 +113,47 @@ class DefaultPainter : DrawDelegate {
                                 thickness: forceToThickness(force: lastTouch.force))
 
         return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
+    }
+
+    func erase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
+        var erasePath = (touch.phase == .began) ? [] : [startingVertex]
+        let touches = event.coalescedTouches(for: touch)!
+        touches.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: view),
+                                                      thickness: 0.0)) }
+        var markedStrokesForErasure = [Int]()
+        for (idx, stroke) in strokeCollection.enumerated() {
+            if erasePath.count == 1 {
+                let a = erasePath.first!.location.applying(
+                        CGAffineTransform(translationX: -0.5, y: 0.0))
+                let b = a.applying(CGAffineTransform(translationX: 1.0, y: 0.0))
+                if stroke.crosses(with: (a, b)) {
+                    markedStrokesForErasure.append(idx)
+                }
+            } else {
+                for i in 0 ..< erasePath.count - 1 {
+                    let a = erasePath[i].location
+                    let b = erasePath[i + 1].location
+                    if stroke.crosses(with: (a, b)) {
+                        markedStrokesForErasure.append(idx)
+                        break
+                    }
+                }
+            }
+        }
+
+        let atLeastOneStrokeErased = !markedStrokesForErasure.isEmpty
+        if atLeastOneStrokeErased {
+            for idx in markedStrokesForErasure.reversed() {
+                strokeCollection.remove(at: idx)
+            }
+        }
+
+        if touch.phase == .began || touch.phase == .moved {
+            startingVertex = Vertex(location: touches.first!.preciseLocation(in: view),
+                                    thickness: 0.0)
+        }
+
+        return atLeastOneStrokeErased
     }
 
     func redraw() {
@@ -131,7 +178,9 @@ class DefaultPainter : DrawDelegate {
         for stroke in strokeCollection {
             drawStroke(stroke: stroke)
         }
-        drawStroke(stroke: currentStroke!)
+        if let currentStroke = currentStroke {
+            drawStroke(stroke: currentStroke)
+        }
     }
 }
 
@@ -179,9 +228,6 @@ class DrawingAgent {
     }
 
     func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        // handle only .began and .moved
-        assert(touch.phase == .began || touch.phase == .moved)
-
         // start with a new canvas
         UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
 
@@ -196,6 +242,15 @@ class DrawingAgent {
         UIGraphicsEndImageContext()
 
         return dirtyRect!
+    }
+
+    func handleErase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
+        let erased = drawDelegate.erase(touch, event, view)
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+        drawDelegate.redraw()
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return erased
     }
 
     func drawRect(_ rect: CGRect) {
@@ -329,8 +384,28 @@ class CanvasView: UIView {
             boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
                                             size: CGSize()))
         }
-        resize(boundingBox.box!)
-        let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-        canvasLayer.setNeedsDisplay(dirtyRect)
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        let eraserEnabled = delegate.eraserMode
+        if eraserEnabled == false {
+            resize(boundingBox.box!)
+            let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
+            canvasLayer.setNeedsDisplay(dirtyRect)
+        } else {
+            guard let t = touches.first, (t.phase == .began || t.phase == .moved)
+                else { return }
+
+            let erased = drawingAgent.handleErase(touches.first!, event!, self)
+            if erased {
+                canvasLayer.setNeedsDisplay()
+            }
+        }
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesMoved(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesMoved(touches, with: event)
     }
 }
