@@ -116,32 +116,42 @@ class DefaultPainter : DrawDelegate {
     }
 
     func erase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
-        var markedStrokes = [Int]()
-
-        var touches = event.coalescedTouches(for: touch)!
-        for (idx, stroke) in strokeCollection.enumerated() {
-            if touches.count == 1 {
-                let a = touches.first!.preciseLocation(in: view).applying(
+        var erasePath = (touch.phase == .began) ? [] : [startingVertex]
+        let touches = event.coalescedTouches(for: touch)!
+        touches.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: view),
+                                                      thickness: 0.0)) }
+        var markedStrokesForErasure = [Stroke]()
+        for stroke in strokeCollection {
+            if erasePath.count == 1 {
+                let a = erasePath.first!.location.applying(
                         CGAffineTransform(translationX: -0.5, y: 0.0))
                 let b = a.applying(CGAffineTransform(translationX: 1.0, y: 0.0))
                 if stroke.crosses(with: (a, b)) {
-                    markedStrokes.append(idx)
+                    markedStrokesForErasure.append(stroke)
                 }
             } else {
-                for idx in 0 ..< touches.count - 1 {
-                    let a = touches[idx].preciseLocation(in: view)
-                    let b = touches[idx + 1].preciseLocation(in: view)
+                for idx in 0 ..< erasePath.count - 1 {
+                    let a = erasePath[idx].location
+                    let b = erasePath[idx + 1].location
                     if stroke.crosses(with: (a, b)) {
-                        markedStrokes.append(idx)
+                        markedStrokesForErasure.append(stroke)
+                        break
                     }
                 }
             }
         }
-
-        for idx in markedStrokes.reversed() {
-            strokeCollection.remove(at: idx)
+        let atLeastOneStrokeErased = !markedStrokesForErasure.isEmpty
+        if atLeastOneStrokeErased {
+            strokeCollection = strokeCollection.filter(
+                    { (s: Stroke) in markedStrokesForErasure.contains { $0 !== s }})
         }
-        return !markedStrokes.isEmpty
+
+        if touch.phase == .began || touch.phase == .moved {
+            startingVertex = Vertex(location: touches.first!.preciseLocation(in: view),
+                                    thickness: 0.0)
+        }
+
+        return atLeastOneStrokeErased
     }
 
     func redraw() {
