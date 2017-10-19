@@ -64,14 +64,16 @@ func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
     // Reference: https://martin-thoma.com/how-to-check-if-two-line-segments-intersect/
 
     func boundingBoxesIntersect(a: CGRect, b: CGRect) -> Bool {
-        return a.minX <= b.maxX &&
+        let rs = a.minX <= b.maxX &&
                 b.minX <= a.maxX &&
                 a.minY <= b.maxY &&
                 b.minY <= a.maxY
+        return rs
     }
 
     func crossProduct(a: CGPoint, b: CGPoint) -> CGFloat {
-        return a.x * b.y - b.x * a.y
+        let rs = a.x * b.y - b.x * a.y
+        return rs
     }
 
     let epsilon = 0.000001
@@ -81,19 +83,23 @@ func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
         let translate = CGAffineTransform(translationX: -p1.x, y: -p1.y)
         let tl = (p1.applying(translate), p2.applying(translate))
         let tp = p.applying(translate)
-        return abs(Double(crossProduct(a: tp, b: tl.1))) <= epsilon
+        let rs = abs(Double(crossProduct(a: tp, b: tl.1))) <= epsilon
+        return rs
     }
 
     func pointRightOfLine(p: CGPoint, l: (CGPoint, CGPoint)) -> Bool {
         let (p1, p2) = l
         let translate = CGAffineTransform(translationX: -p1.x, y: -p1.y)
-        let translatedLine = (p1.applying(translate), p2.applying(translate))
-        return abs(Double(crossProduct(a: p, b: translatedLine.1))) < 0
+        let tl = (p1.applying(translate), p2.applying(translate))
+        let tp = p.applying(translate)
+        let rs = crossProduct(a: tp, b: tl.1) < 0
+        return rs
     }
 
     func lineSegmentTouchesOrCrossesLine(l: (CGPoint, CGPoint), ls: (CGPoint, CGPoint)) -> Bool {
-        return pointOnLine(p: ls.0, l: l) || pointOnLine(p: ls.1, l: l) ||
+        let rs = pointOnLine(p: ls.0, l: l) || pointOnLine(p: ls.1, l: l) ||
                 (pointRightOfLine(p: ls.0, l: l) != pointRightOfLine(p: ls.1, l: l))
+        return rs
     }
 
     let boxA = CGRect(x: min(a.0.x, a.1.x), y: min(a.0.y, a.1.y),
@@ -103,9 +109,10 @@ func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
                       width: CGFloat(abs(Double(b.0.x - b.1.x))),
                       height: CGFloat(abs(Double(b.0.y - b.1.y))))
 
-    return boundingBoxesIntersect(a: boxA, b: boxB) &&
-        lineSegmentTouchesOrCrossesLine(l: a, ls: b) &&
-        lineSegmentTouchesOrCrossesLine(l: b, ls: a)
+    let rs = boundingBoxesIntersect(a: boxA, b: boxB) &&
+            lineSegmentTouchesOrCrossesLine(l: a, ls: b) &&
+            lineSegmentTouchesOrCrossesLine(l: b, ls: a)
+    return rs
 }
 
 func distance(from point: CGPoint, to line:(CGPoint, CGPoint)) -> CGFloat {
