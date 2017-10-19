@@ -79,8 +79,9 @@ func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
     func pointOnLine(p: CGPoint, l: (CGPoint, CGPoint)) -> Bool {
         let (p1, p2) = l
         let translate = CGAffineTransform(translationX: -p1.x, y: -p1.y)
-        let translatedLine = (p1.applying(translate), p2.applying(translate))
-        return abs(Double(crossProduct(a: p, b: translatedLine.1))) <= epsilon
+        let tl = (p1.applying(translate), p2.applying(translate))
+        let tp = p.applying(translate)
+        return abs(Double(crossProduct(a: tp, b: tl.1))) <= epsilon
     }
 
     func pointRightOfLine(p: CGPoint, l: (CGPoint, CGPoint)) -> Bool {
