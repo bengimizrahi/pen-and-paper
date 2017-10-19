@@ -120,30 +120,32 @@ class DefaultPainter : DrawDelegate {
         let touches = event.coalescedTouches(for: touch)!
         touches.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: view),
                                                       thickness: 0.0)) }
-        var markedStrokesForErasure = [Stroke]()
-        for stroke in strokeCollection {
+        var markedStrokesForErasure = [Int]()
+        for (idx, stroke) in strokeCollection.enumerated() {
             if erasePath.count == 1 {
                 let a = erasePath.first!.location.applying(
                         CGAffineTransform(translationX: -0.5, y: 0.0))
                 let b = a.applying(CGAffineTransform(translationX: 1.0, y: 0.0))
                 if stroke.crosses(with: (a, b)) {
-                    markedStrokesForErasure.append(stroke)
+                    markedStrokesForErasure.append(idx)
                 }
             } else {
-                for idx in 0 ..< erasePath.count - 1 {
-                    let a = erasePath[idx].location
-                    let b = erasePath[idx + 1].location
+                for i in 0 ..< erasePath.count - 1 {
+                    let a = erasePath[i].location
+                    let b = erasePath[i + 1].location
                     if stroke.crosses(with: (a, b)) {
-                        markedStrokesForErasure.append(stroke)
+                        markedStrokesForErasure.append(idx)
                         break
                     }
                 }
             }
         }
+
         let atLeastOneStrokeErased = !markedStrokesForErasure.isEmpty
         if atLeastOneStrokeErased {
-            strokeCollection = strokeCollection.filter(
-                    { (s: Stroke) in markedStrokesForErasure.contains { $0 !== s }})
+            for idx in markedStrokesForErasure.reversed() {
+                strokeCollection.remove(at: idx)
+            }
         }
 
         if touch.phase == .began || touch.phase == .moved {
