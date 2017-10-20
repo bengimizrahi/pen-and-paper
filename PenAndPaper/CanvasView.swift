@@ -423,7 +423,11 @@ class CanvasView: UIView {
         if eraserEnabled == false {
             resize(boundingBox.box!)
             let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-            canvasLayer.setNeedsDisplay(dirtyRect)
+
+            let ph = touches.first!.phase
+            if ph == .began || ph == .moved {
+                canvasLayer.setNeedsDisplay(dirtyRect)
+            }
         } else {
             guard let t = touches.first, (t.phase == .began || t.phase == .moved)
                 else { return }
