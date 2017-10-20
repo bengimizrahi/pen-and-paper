@@ -115,24 +115,33 @@ func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
     return rs
 }
 
-func distance(from point: CGPoint, to line:(CGPoint, CGPoint)) -> CGFloat {
+func distanceToLine(from point: CGPoint, to line:(CGPoint, CGPoint), isLessThan dist: CGFloat) -> Bool {
     // Reference: http://mathworld.wolfram.com/Point-LineDistance2-Dimensional.html
 
     let (x0, y0) = (Double(point.x), Double(point.y))
-    let (x1, y1) = (Double(line.0.x), Double(line.0.y))
-    let (x2, y2) = (Double(line.1.x), Double(line.1.y))
+    var (x1, y1) = (Double(line.0.x), Double(line.0.y))
+    var (x2, y2) = (Double(line.1.x), Double(line.1.y))
 
     let nominator = abs(((x2 - x1) * (y1 - y0)) - ((x1 - x0) * (y2 - y1)))
     let denominator = sqrt(((x2 - x1) * (x2 - x1)) + ((y2 - y1) * (y2 - y1)))
-    let dist = nominator / denominator
+    let perpendicularDist = nominator / denominator
 
-    return CGFloat(dist)
+    guard CGFloat(perpendicularDist) <= dist else { return false }
+
+    var expansionDirection = x1 < x2 ? -1.0 : 1.0
+    x1 += expansionDirection * Double(dist)
+    x2 += -expansionDirection * Double(dist)
+    expansionDirection = y1 < y2 ? -1.0 : 1.0
+    y1 += expansionDirection * Double(dist)
+    y2 += -expansionDirection * Double(dist)
+
+    return ((x0 < x1) != (x0 < x2)) && ((y0 < y1) != (y0 < y2))
 }
 
-func distance(from point0: CGPoint, to point1: CGPoint) -> CGFloat {
+func distance(from point0: CGPoint, to point1: CGPoint, isLessThan dist: CGFloat) -> Bool {
     let (x0, y0) = (Double(point0.x), Double(point0.y))
     let (x1, y1) = (Double(point1.x), Double(point1.y))
 
-    let dist = sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0))
-    return CGFloat(dist)
+    let quadrance = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)
+    return CGFloat(quadrance) < (dist * dist)
 }
