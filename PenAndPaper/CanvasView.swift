@@ -9,13 +9,23 @@
 import UIKit
 
 protocol DrawDelegate {
+    func bounds() -> CGRect
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect
     func redraw()
 }
 
 class CirclePainter : DrawDelegate {
 
+    let sz: CGFloat = 5.0
+
     var points = [CGPoint]()
+
+    func bounds() -> CGRect {
+        var box = points.reduce(CGRect()) { $0.union(CGRect(origin: $1, size: CGSize())) }
+        box.size.height += (sz / 2.0)
+        box.size.width += (sz / 2.0)
+        return box
+    }
 
     func drawCircle(at rect: CGRect) {
         let context = UIGraphicsGetCurrentContext()!
@@ -24,9 +34,8 @@ class CirclePainter : DrawDelegate {
     }
 
     func circleRect(at point: CGPoint) -> CGRect {
-        let s: CGFloat = 5.0
-        let r = CGRect(origin: CGPoint(x: point.x - s, y: point.y - s),
-                       size: CGSize(width: 2 * s, height: 2 * s))
+        let r = CGRect(origin: CGPoint(x: point.x - sz, y: point.y - sz),
+                       size: CGSize(width: 2 * sz, height: 2 * sz))
         return r
     }
 
@@ -60,6 +69,10 @@ class DefaultPainter : DrawDelegate {
     var currentStroke: Stroke? = nil
     var startingVertex = Vertex(location: CGPoint(),
                                 thickness: CGFloat())
+
+    func bounds() -> CGRect {
+        return strokeCollection.reduce(CGRect()) { $0.union($1.frame()) }
+    }
 
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
         var maxThicknessNoted: CGFloat = 0.0
@@ -244,13 +257,20 @@ class DrawingAgent {
         return dirtyRect!
     }
 
-    func handleErase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
+    func handleErase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> (Bool, CGRect) {
         let erased = drawDelegate.erase(touch, event, view)
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+        guard erased else { return (false, CGRect()) }
+
+        var shrinkedBounds = drawDelegate.bounds()
+        shrinkedBounds.size.width = bounds.width
+        shrinkedBounds.size.height = max(shrinkedBounds.height, CanvasView.kInterBaselineDistance)
+
+        UIGraphicsBeginImageContextWithOptions(shrinkedBounds.size, false, 0.0)
         drawDelegate.redraw()
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
-        return erased
+
+        return (erased, shrinkedBounds)
     }
 
     func drawRect(_ rect: CGRect) {
@@ -371,6 +391,20 @@ class CanvasView: UIView {
         stripeLayer.removeAllAnimations()
     }
 
+    func shrinkSize(_ size: CGSize) {
+        var newSize = size
+        newSize.height = max(newSize.height, CanvasView.kInterBaselineDistance)
+
+        frame.size = newSize
+        canvasLayer.frame.size = newSize
+        stripeLayer.frame.size = newSize
+
+        canvasLayer.setNeedsDisplay()
+        canvasLayer.removeAllAnimations()
+        stripeLayer.setNeedsDisplay()
+        stripeLayer.removeAllAnimations()
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         touchesMoved(touches, with: event)
     }
@@ -394,8 +428,9 @@ class CanvasView: UIView {
             guard let t = touches.first, (t.phase == .began || t.phase == .moved)
                 else { return }
 
-            let erased = drawingAgent.handleErase(touches.first!, event!, self)
+            let (erased, shrinkedBounds) = drawingAgent.handleErase(touches.first!, event!, self)
             if erased {
+                shrinkSize(shrinkedBounds.size)
                 canvasLayer.setNeedsDisplay()
             }
         }

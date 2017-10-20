@@ -8,8 +8,6 @@
 
 import UIKit
 
-let kOverlapRegionWidth: CGFloat = 5.0
-
 struct Vertex {
     var location: CGPoint
     var thickness: CGFloat
@@ -17,9 +15,11 @@ struct Vertex {
 
 class Stroke {
     var vertices = [Vertex]()
+    var maxThickness: CGFloat = 0.0
 
     func append(vertex: Vertex) {
         vertices.append(vertex)
+        maxThickness = max(maxThickness, vertex.thickness)
     }
 
     func crosses(with line: (CGPoint, CGPoint)) -> Bool {
@@ -41,27 +41,13 @@ class Stroke {
         return false
     }
 
-    func overlaps(with point:CGPoint) -> Bool {
+    func frame() -> CGRect {
         if vertices.count == 1 {
-            return distance(from: vertices.first!.location, to: point) <= kOverlapRegionWidth
+            return CGRect(origin: vertices.first!.location,
+                          size:CGSize(width: maxThickness, height: maxThickness))
+        } else {
+            let box = CGRect(origin: vertices.first!.location, size: CGSize())
+            return vertices.reduce(box) { $0.union(CGRect(origin: $1.location, size: CGSize())) }
         }
-
-        for i in 0 ..< vertices.count - 1 {
-            let v0 = vertices[i].location
-            let v1 = vertices[i + 1].location
-
-            if distance(from: point, to: (v0, v1)) <= kOverlapRegionWidth {
-                let px_lte_v0x = point.x <= v0.x
-                let px_lte_v1x = point.x <= v1.x
-                let py_lte_v0y = point.y <= v0.y
-                let py_lte_v1y = point.y <= v1.y
-
-                if px_lte_v0x != px_lte_v1x || py_lte_v0y != py_lte_v1y {
-                    return true
-                }
-            }
-        }
-
-        return false
     }
 }
