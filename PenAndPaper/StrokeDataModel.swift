@@ -41,6 +41,22 @@ class Stroke {
         return false
     }
 
+    func overlaps(with point:CGPoint) -> Bool {
+        if vertices.count == 1 {
+            return distance(from: vertices.first!.location, to: point, isLessThan: 10.0)
+        }
+
+        for i in 0 ..< vertices.count - 1 {
+            let v0 = vertices[i].location
+            let v1 = vertices[i + 1].location
+
+            if distanceToLine(from: point, to: (v0, v1), isLessThan: 10.0) {
+                return true
+            }
+        }
+        return false
+    }
+
     func frame() -> CGRect {
         if vertices.count == 1 {
             return CGRect(origin: vertices.first!.location,

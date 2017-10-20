@@ -135,21 +135,11 @@ class DefaultPainter : DrawDelegate {
                                                       thickness: 0.0)) }
         var markedStrokesForErasure = [Int]()
         for (idx, stroke) in strokeCollection.enumerated() {
-            if erasePath.count == 1 {
-                let a = erasePath.first!.location.applying(
-                        CGAffineTransform(translationX: -0.5, y: 0.0))
-                let b = a.applying(CGAffineTransform(translationX: 1.0, y: 0.0))
-                if stroke.crosses(with: (a, b)) {
+            for i in 0 ..< erasePath.count {
+                let p = erasePath[i].location
+                if stroke.overlaps(with: p) {
                     markedStrokesForErasure.append(idx)
-                }
-            } else {
-                for i in 0 ..< erasePath.count - 1 {
-                    let a = erasePath[i].location
-                    let b = erasePath[i + 1].location
-                    if stroke.crosses(with: (a, b)) {
-                        markedStrokesForErasure.append(idx)
-                        break
-                    }
+                    break
                 }
             }
         }
