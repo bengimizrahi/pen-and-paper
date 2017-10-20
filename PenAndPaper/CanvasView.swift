@@ -263,6 +263,7 @@ class DrawingAgent {
 
         var shrinkedBounds = drawDelegate.bounds()
         shrinkedBounds.size.width = bounds.width
+        shrinkedBounds.size.height = max(shrinkedBounds.height, CanvasView.kInterBaselineDistance)
 
         UIGraphicsBeginImageContextWithOptions(shrinkedBounds.size, false, 0.0)
         drawDelegate.redraw()
