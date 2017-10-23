@@ -80,7 +80,7 @@ class DefaultPainter : DrawDelegate {
                 strokeCollection.append(completedStroke)
                 currentStroke = nil
             }
-            return CGRect()
+            return CGRect() // <- incorrect will cause big rect
         }
 
         var maxThicknessNoted: CGFloat = 0.0

@@ -17,7 +17,7 @@ extension Stroke {
         path.move(to: firstVertex.location)
         path.lineWidth = firstVertex.thickness
 
-        // Add subsequent vertex locations and make strokes with correspoinding
+        // Add subsequent vertex locations and make strokes with corresponding
         // thicknesses.
         for v in vertices[1...] {
             path.addLine(to: v.location)
@@ -37,8 +37,8 @@ class StripeLayer: CATiledLayer, CALayerDelegate {
     override var bounds: CGRect {
         didSet {
             let size = CGSize(width: bounds.width, height: lineHeight!)
-            let scale = UIScreen.main.scale
-            let scaledSize = size.applying(CGAffineTransform(scaleX: scale, y: scale))
+            let scaledSize = size.applying(
+                    CGAffineTransform(scaleX: contentsScale, y: contentsScale))
             tileSize = scaledSize
         }
     }
@@ -119,7 +119,7 @@ class CanvasView: UIView {
                                     thickness: CGFloat())
     var strokes = [Stroke]()
     var currentStroke: Stroke? = nil
-    var canvas: UIImage? = nil
+    var canvas: UIImage
     var rectNeedsDisplay: CGRect? = nil
 
     // MARK: CanvasView Initializer / Deinitializer
@@ -156,6 +156,12 @@ class CanvasView: UIView {
         // Add the layers as sublayers
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
+
+        // Setup canvas
+        UIGraphicsBeginImageContextWithOptions(
+            CGSize(width: bounds.width, height: CanvasView.kLineHeight), false, 0.0)
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
     }
 
     deinit {
@@ -208,15 +214,15 @@ class CanvasView: UIView {
         let expansionTriggeringBoundary = bounds.height - CanvasView.kMargin
         if box!.maxY >= expansionTriggeringBoundary {
             let newCanvasSize = { () -> CGSize in
-                var sz = self.canvas!.size
+                var sz = self.canvas.size
                 let n = CGFloat(Int(box!.maxY / CanvasView.kLineHeight))
                 let newHeight = (n + 1) * CanvasView.kLineHeight
                 sz.height = newHeight
                 return sz
             }()
-            if newCanvasSize != canvas!.size {
+            if newCanvasSize != canvas.size {
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
-                canvas!.draw(in: CGRect(origin: CGPoint(), size: canvas!.size))
+                canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
                 canvas = UIGraphicsGetImageFromCurrentImageContext()!
                 UIGraphicsEndImageContext()
             }
@@ -241,11 +247,10 @@ class CanvasView: UIView {
             // Collect the stroke
             strokes.append(currentStroke!)
             currentStroke = nil
-            rectNeedsDisplay = CGRect()
         } else {
             // Create a new image context from the old image
             UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-            canvas?.draw(in: bounds)
+            canvas.draw(in: bounds)
 
             // Draw the touches
             var maxThicknessNoted: CGFloat = 0.0
@@ -300,7 +305,7 @@ class CanvasView: UIView {
                     insetDirtyRect : rectNeedsDisplay!.union(insetDirtyRect)
 
             // Get the final image
-            canvas = UIGraphicsGetImageFromCurrentImageContext()
+            canvas = UIGraphicsGetImageFromCurrentImageContext()!
             UIGraphicsEndImageContext()
 
             // Set needs display for the corresponding rect
@@ -358,7 +363,7 @@ class CanvasView: UIView {
         if let s = currentStroke {
             s.draw()
         }
-        canvas = UIGraphicsGetImageFromCurrentImageContext()
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
         // Shrink the size if needed
