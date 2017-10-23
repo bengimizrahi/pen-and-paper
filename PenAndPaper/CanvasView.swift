@@ -31,25 +31,16 @@ extension Stroke {
 
 class StripeLayer: CATiledLayer, CALayerDelegate {
 
-    let stripeColor: UIColor
-    let lineHeight: CGFloat
+    var stripeColor: UIColor? = nil
+    var lineHeight: CGFloat? = nil
+
     override var bounds: CGRect {
         didSet {
-            let size = CGSize(width: bounds.width, height: lineHeight)
+            let size = CGSize(width: bounds.width, height: lineHeight!)
             let scale = UIScreen.main.scale
             let scaledSize = size.applying(CGAffineTransform(scaleX: scale, y: scale))
             tileSize = scaledSize
         }
-    }
-
-    init(stripeColor: UIColor, lineHeight: CGFloat) {
-        self.stripeColor = stripeColor
-        self.lineHeight = lineHeight
-        super.init()
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     func draw(_ layer: CALayer, in ctx: CGContext) {
@@ -57,8 +48,8 @@ class StripeLayer: CATiledLayer, CALayerDelegate {
         let rect = ctx.boundingBoxOfClipPath
 
         let path = UIBezierPath()
-        stripeColor.set()
-        let baselineY = rect.minY + lineHeight - 1.5
+        stripeColor!.set()
+        let baselineY = rect.minY + lineHeight! - 1.5
         path.move(to: CGPoint(x: rect.minX, y: baselineY))
         path.addLine(to: CGPoint(x: rect.maxX, y: baselineY))
         path.lineWidth = 0.5
@@ -142,8 +133,9 @@ class CanvasView: UIView {
 
     required init?(coder aDecoder: NSCoder) {
         // First initialize CanvasView's member variables
-        stripeLayer = StripeLayer(stripeColor: CanvasView.kStripeColor,
-                                  lineHeight: CanvasView.kLineHeight)
+        stripeLayer = StripeLayer(coder: aDecoder)!
+        stripeLayer.stripeColor = CanvasView.kStripeColor
+        stripeLayer.lineHeight = CanvasView.kLineHeight
         canvasLayer = CanvasLayer(parentView: self)
 
         // Initialize the UIView
