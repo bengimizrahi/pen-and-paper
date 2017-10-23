@@ -77,6 +77,7 @@ class CanvasLayer: CALayer, CALayerDelegate {
             CGAffineTransform(scaleX: contentsScale,
                               y: contentsScale))
 
+        // ...
         if let subCgImage = canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
             subimage.draw(in: rectToPaint)
@@ -84,6 +85,7 @@ class CanvasLayer: CALayer, CALayerDelegate {
 
         UIGraphicsPopContext()
 
+        // ...
         parentView!.rectNeedsDisplay = nil
     }
 }
@@ -205,6 +207,20 @@ class CanvasView: UIView {
         // Expand the size if needed
         let expansionTriggeringBoundary = bounds.height - CanvasView.kMargin
         if box!.maxY >= expansionTriggeringBoundary {
+            let newCanvasSize = { () -> CGSize in
+                var sz = self.canvas!.size
+                let n = CGFloat(Int(box!.maxY / CanvasView.kLineHeight))
+                let newHeight = (n + 1) * CanvasView.kLineHeight
+                sz.height = newHeight
+                return sz
+            }()
+            if newCanvasSize != canvas!.size {
+                UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
+                canvas!.draw(in: CGRect(origin: CGPoint(), size: canvas!.size))
+                canvas = UIGraphicsGetImageFromCurrentImageContext()!
+                UIGraphicsEndImageContext()
+            }
+
             // Change the bounds of the view and sublayers
             let expandedSize = CGSize(width: bounds.width,
                                  height: box!.maxY + CanvasView.kMargin)
@@ -213,6 +229,7 @@ class CanvasView: UIView {
             stripeLayer.frame.size = expandedSize
 
             // Set needs display for the sublayers
+            // WHY??????
             canvasLayer.setNeedsDisplay()
             canvasLayer.removeAllAnimations()
             stripeLayer.setNeedsDisplay()
