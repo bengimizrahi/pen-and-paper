@@ -226,6 +226,10 @@ class DrawingAgent {
         UIGraphicsEndImageContext()
     }
 
+    func shrinkSize(_ newSize: CGSize) {
+        bounds = CGRect(origin:CGPoint(), size: newSize)
+    }
+
     func expandDirtyRect(with rect: CGRect) {
         dirtyRect = (dirtyRect == nil) ? rect : dirtyRect!.union(rect)
     }
@@ -385,6 +389,8 @@ class CanvasView: UIView {
         var newSize = size
         newSize.height = max(newSize.height, CanvasView.kInterBaselineDistance)
 
+        self.drawingAgent.shrinkSize(newSize)
+
         frame.size = newSize
         canvasLayer.frame.size = newSize
         stripeLayer.frame.size = newSize
@@ -425,7 +431,6 @@ class CanvasView: UIView {
             let (erased, shrinkedBounds) = drawingAgent.handleErase(touches.first!, event!, self)
             if erased {
                 shrinkSize(shrinkedBounds.size)
-                canvasLayer.setNeedsDisplay()
             }
         }
     }
