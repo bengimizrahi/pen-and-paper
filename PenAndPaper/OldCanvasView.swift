@@ -75,14 +75,6 @@ class DefaultPainter : DrawDelegate {
     }
 
     func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        var maxThicknessNoted: CGFloat = 0.0
-
-        // start a bezier path
-        UIColor.black.set()
-        let path = UIBezierPath()
-
-        var it = event.coalescedTouches(for: touch)!.makeIterator()
-
         if touch.phase == .cancelled || touch.phase == .ended {
             if let completedStroke = currentStroke {
                 strokeCollection.append(completedStroke)
@@ -90,6 +82,14 @@ class DefaultPainter : DrawDelegate {
             }
             return CGRect()
         }
+
+        var maxThicknessNoted: CGFloat = 0.0
+
+        // start a bezier path
+        UIColor.black.set()
+        let path = UIBezierPath()
+
+        var it = event.coalescedTouches(for: touch)!.makeIterator()
 
         // if touch began, use the first vertex as the starting vertex
         if touch.phase == .began {
@@ -153,6 +153,7 @@ class DefaultPainter : DrawDelegate {
             }
         }
 
+        // why???? (Remember the - - - - - problem found by svg)
         if touch.phase == .began || touch.phase == .moved {
             startingVertex = Vertex(location: touches.first!.preciseLocation(in: view),
                                     thickness: 0.0)
@@ -413,15 +414,11 @@ class OldCanvasView: UIView {
         guard goodQuadrance(touch: touches.first!) else { return }
 
         let cts = event!.coalescedTouches(for: touches.first!)!
-        let boundingBox = BoundingBox()
-        for t in cts {
-            boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
-                                            size: CGSize()))
-        }
+        let box = boundingBox(touches: cts, in: self)
         let delegate = UIApplication.shared.delegate as! AppDelegate
-        let eraserEnabled = delegate.eraserMode
+        let eraserEnabled = delegate.eraserButtonSelected
         if eraserEnabled == false {
-            resize(boundingBox.box!)
+            resize(box!)
             let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
 
             let ph = touches.first!.phase
@@ -430,7 +427,7 @@ class OldCanvasView: UIView {
             }
         } else {
             guard let t = touches.first, (t.phase == .began || t.phase == .moved)
-                else { return }
+                else { return } // <- not important anymore, we use overlaps()
 
             let (erased, shrinkedBounds) = drawingAgent.handleErase(touches.first!, event!, self)
             if erased {

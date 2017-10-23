@@ -52,12 +52,13 @@ class LogFunc {
     }
 }
 
-class BoundingBox {
+func boundingBox(touches: [UITouch], in view: UIView) -> CGRect? {
     var box: CGRect? = nil
-
-    func expand(with rect: CGRect) {
+    for t in touches {
+        let rect = CGRect(origin: t.preciseLocation(in: view), size: CGSize())
         box = (box == nil) ? rect : box!.union(rect)
     }
+    return box
 }
 
 func linesIntersect(a: (CGPoint, CGPoint), b: (CGPoint, CGPoint)) -> Bool {
