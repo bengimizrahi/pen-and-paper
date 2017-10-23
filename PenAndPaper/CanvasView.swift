@@ -281,9 +281,12 @@ class CanvasView: UIView {
             vertexToStartWidth = Vertex(location: t.preciseLocation(in: self),
                                         thickness: forceToThickness(force: t.force))
 
+            // Add an inset of size of maximum thickness to the dirty rect
+            let insetDirtyRect = dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
+
             // Update the rect that needs display
             rectNeedsDisplay = (rectNeedsDisplay == nil) ?
-                    dirtyRect : rectNeedsDisplay!.union(dirtyRect)
+                    insetDirtyRect : rectNeedsDisplay!.union(insetDirtyRect)
 
             // Get the final image
             canvas = UIGraphicsGetImageFromCurrentImageContext()
