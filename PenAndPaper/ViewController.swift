@@ -12,12 +12,12 @@ class ViewController: UIViewController {
 
     @IBAction func eraserEnabled(_ sender: UIButton) {
         let delegate = UIApplication.shared.delegate as! AppDelegate
-        delegate.eraserMode = true
+        delegate.eraserButtonSelected = true
     }
 
     @IBAction func eraserDisabled(_ sender: UIButton) {
         let delegate = UIApplication.shared.delegate as! AppDelegate
-        delegate.eraserMode = false
+        delegate.eraserButtonSelected = false
     }
 
     override func viewDidLoad() {
