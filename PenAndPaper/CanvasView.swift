@@ -60,16 +60,7 @@ class StripeLayer: CATiledLayer, CALayerDelegate {
 
 
 class CanvasLayer: CALayer, CALayerDelegate {
-    weak var parentView: CanvasView?
-
-    init(parentView: CanvasView) {
-        self.parentView = parentView
-        super.init()
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
+    weak var parentView: CanvasView? = nil
 
     func draw(_ layer: CALayer, in ctx: CGContext) {
         guard let canvas = parentView!.canvas else { return }
@@ -136,11 +127,14 @@ class CanvasView: UIView {
         stripeLayer = StripeLayer(coder: aDecoder)!
         stripeLayer.stripeColor = CanvasView.kStripeColor
         stripeLayer.lineHeight = CanvasView.kLineHeight
-        canvasLayer = CanvasLayer(parentView: self)
+        canvasLayer = CanvasLayer()
 
         // Initialize the UIView
         super.init(coder: aDecoder)
         // Now, we have bounds/frame information
+
+        // Bind the canvas layer to this view for drawing context
+        canvasLayer.parentView = self
 
         // Set scale and gravity information
         let scale = UIScreen.main.scale
