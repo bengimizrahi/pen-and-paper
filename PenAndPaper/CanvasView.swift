@@ -113,7 +113,7 @@ class CanvasView: UIView {
 
     var vertexToStartWidth = Vertex(location: CGPoint(),
                                     thickness: CGFloat())
-    var strokes = [Stroke]()
+    var strokes = Set<Stroke>()
     var currentStroke: Stroke? = nil
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
@@ -257,7 +257,7 @@ class CanvasView: UIView {
 
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
-            strokes.append(currentStroke!)
+            strokes.insert(currentStroke!)
 
             // Add the stroke to the corresponding grids
             for v in currentStroke!.vertices {
@@ -343,23 +343,15 @@ class CanvasView: UIView {
                                               thickness: 0.0)) }
 
         // Obtain indices of vertices, which overlaps with the erase path
-        var markedStrokesForErasure = [Int]()
-        for (strokeIdx, stroke) in strokes.enumerated() {
+        var someStrokesErased = false
+        for s in strokes {
             for v in erasePath {
                 let p = v.location
-                if stroke.overlaps(with: p) {
-                    markedStrokesForErasure.append(strokeIdx)
+                if s.overlaps(with: p) {
+                    strokes.remove(s)
+                    someStrokesErased = true
                     break
                 }
-            }
-        }
-
-        let someStrokesErased = !markedStrokesForErasure.isEmpty
-
-        // Remove the overlapping strokes from the list
-        if someStrokesErased {
-            for idx in markedStrokesForErasure.reversed() {
-                strokes.remove(at: idx)
             }
         }
 
