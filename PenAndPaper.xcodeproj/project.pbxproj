@@ -17,7 +17,6 @@
 		EDEFE39E1F8F82440009998B /* PenAndPaperUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE39D1F8F82440009998B /* PenAndPaperUITests.swift */; };
 		EDEFE3AE1F8F82BA0009998B /* Utility.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE3AB1F8F82BA0009998B /* Utility.swift */; };
 		EDEFE3AF1F8F82BA0009998B /* StrokeDataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE3AC1F8F82BA0009998B /* StrokeDataModel.swift */; };
-		EDEFE3B01F8F82BA0009998B /* OldCanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE3AD1F8F82BA0009998B /* OldCanvasView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +53,6 @@
 		EDEFE39F1F8F82440009998B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EDEFE3AB1F8F82BA0009998B /* Utility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utility.swift; sourceTree = "<group>"; };
 		EDEFE3AC1F8F82BA0009998B /* StrokeDataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StrokeDataModel.swift; sourceTree = "<group>"; };
-		EDEFE3AD1F8F82BA0009998B /* OldCanvasView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OldCanvasView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,7 +104,6 @@
 			isa = PBXGroup;
 			children = (
 				ED6DDF011F9DE26700604D26 /* CanvasView.swift */,
-				EDEFE3AD1F8F82BA0009998B /* OldCanvasView.swift */,
 				EDEFE3AC1F8F82BA0009998B /* StrokeDataModel.swift */,
 				EDEFE3AB1F8F82BA0009998B /* Utility.swift */,
 				EDEFE37D1F8F82440009998B /* AppDelegate.swift */,
@@ -274,7 +271,6 @@
 				EDEFE3801F8F82440009998B /* ViewController.swift in Sources */,
 				EDEFE37E1F8F82440009998B /* AppDelegate.swift in Sources */,
 				ED6DDF021F9DE26700604D26 /* CanvasView.swift in Sources */,
-				EDEFE3B01F8F82BA0009998B /* OldCanvasView.swift in Sources */,
 				EDEFE3AE1F8F82BA0009998B /* Utility.swift in Sources */,
 				EDEFE3AF1F8F82BA0009998B /* StrokeDataModel.swift in Sources */,
 			);
