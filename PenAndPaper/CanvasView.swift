@@ -63,22 +63,20 @@ class CanvasLayer: CALayer, CALayerDelegate {
     weak var parentView: CanvasView? = nil
 
     func draw(_ layer: CALayer, in ctx: CGContext) {
-        guard let canvas = parentView!.canvas else { return }
-
         UIGraphicsPushContext(ctx)
 
         // Obtain the rect where the display will happen
         let rect = ctx.boundingBoxOfClipPath
 
         // ...
-        let canvasBounds = CGRect(origin: CGPoint(), size: canvas.size)
+        let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.canvas.size)
         let rectToPaint = canvasBounds.intersection(rect)
         let rectToPaintInPixels = rectToPaint.applying(
             CGAffineTransform(scaleX: contentsScale,
                               y: contentsScale))
 
         // ...
-        if let subCgImage = canvas.cgImage!.cropping(to: rectToPaintInPixels) {
+        if let subCgImage = parentView!.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
             subimage.draw(in: rectToPaint)
         }
@@ -119,7 +117,7 @@ class CanvasView: UIView {
                                     thickness: CGFloat())
     var strokes = [Stroke]()
     var currentStroke: Stroke? = nil
-    var canvas: UIImage
+    var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
 
     // MARK: CanvasView Initializer / Deinitializer
@@ -249,8 +247,8 @@ class CanvasView: UIView {
             currentStroke = nil
         } else {
             // Create a new image context from the old image
-            UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-            canvas.draw(in: bounds)
+            UIGraphicsBeginImageContextWithOptions(canvas.size, false, 0.0)
+            canvas.draw(at: CGPoint())
 
             // Draw the touches
             var maxThicknessNoted: CGFloat = 0.0
