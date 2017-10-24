@@ -232,10 +232,7 @@ class CanvasView: UIView {
             canvasLayer.frame.size = expandedSize
             stripeLayer.frame.size = expandedSize
 
-            // Set needs display for the sublayers
-            // WHY??????
-            canvasLayer.setNeedsDisplay()
-            canvasLayer.removeAllAnimations()
+            // Set needs display for stripe layer
             stripeLayer.setNeedsDisplay()
             stripeLayer.removeAllAnimations()
         }
@@ -347,13 +344,19 @@ class CanvasView: UIView {
         // Calculate the minimum CGRect that bounds all the strokes
         let strokesBounds = strokes.reduce(CGRect()) { $0.union($1.frame()) }
 
-        // Calculate the new bounds to use
-        var bnd = strokesBounds
-        bnd.size.width = bounds.width
-        bnd.size.height = max(bnd.height, CanvasView.kLineHeight)
+        // Calculate the new canvas size
+        var newCanvasBounds = strokesBounds
+        newCanvasBounds.size.width = bounds.width
+        let n = CGFloat(Int(newCanvasBounds.height / CanvasView.kLineHeight))
+        newCanvasBounds.size.height = (n + 1) * CanvasView.kLineHeight
+
+        // Calculate the new view size
+        var newViewSize = strokesBounds
+        newViewSize.size.width = bounds.width
+        newViewSize.size.height = max(CanvasView.kLineHeight, strokesBounds.maxY + CanvasView.kMargin)
 
         // Redraw the strokes to a new image context
-        UIGraphicsBeginImageContextWithOptions(bnd.size, false, 0.0)
+        UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
         UIColor.black.set()
         for s in strokes {
             s.draw()
@@ -367,9 +370,9 @@ class CanvasView: UIView {
         // Shrink the size if needed
         if someStrokesErased {
             // Change the bounds of the view and sublayers
-            frame.size = bnd.size
-            canvasLayer.frame.size = bnd.size
-            stripeLayer.frame.size = bnd.size
+            frame.size = newViewSize.size
+            canvasLayer.frame.size = newViewSize.size
+            stripeLayer.frame.size = newViewSize.size
 
             // Set needs display for the sublayers
             canvasLayer.setNeedsDisplay()
