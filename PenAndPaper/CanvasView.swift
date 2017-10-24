@@ -10,7 +10,7 @@ import UIKit
 
 extension Stroke {
     func draw() {
-        let path = UIBezierPath()
+        var path = UIBezierPath()
 
         // Move to the first vertex location and set the initial thickness
         let firstVertex = vertices.first!
@@ -23,6 +23,7 @@ extension Stroke {
             path.addLine(to: v.location)
             path.stroke()
 
+            path = UIBezierPath()
             path.move(to: v.location)
             path.lineWidth = v.thickness
         }
@@ -250,7 +251,7 @@ class CanvasView: UIView {
             // Draw the touches
             var maxThicknessNoted: CGFloat = 0.0
             UIColor.black.set()
-            let path = UIBezierPath()
+            var path = UIBezierPath()
             var it = event!.coalescedTouches(for: t)!.makeIterator()
 
             if t.phase == .began {
@@ -280,6 +281,7 @@ class CanvasView: UIView {
                 path.addLine(to: v.location)
                 path.stroke()
 
+                path = UIBezierPath()
                 path.move(to: v.location)
                 path.lineWidth = v.thickness
 
