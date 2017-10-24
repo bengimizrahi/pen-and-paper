@@ -69,14 +69,12 @@ class CanvasLayer: CALayer, CALayerDelegate {
         // Obtain the rect where the display will happen
         let rect = ctx.boundingBoxOfClipPath
 
-        // ...
         let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.canvas.size)
         let rectToPaint = canvasBounds.intersection(rect)
         let rectToPaintInPixels = rectToPaint.applying(
             CGAffineTransform(scaleX: contentsScale,
                               y: contentsScale))
 
-        // ...
         if let subCgImage = parentView!.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
             subimage.draw(in: rectToPaint)
@@ -84,7 +82,6 @@ class CanvasLayer: CALayer, CALayerDelegate {
 
         UIGraphicsPopContext()
 
-        // ...
         parentView!.rectNeedsDisplay = nil
     }
 }
@@ -101,7 +98,7 @@ class CanvasView: UIView {
                                         blue: 251.0 / 255.0,
                                         alpha: 1.0)
     static let kMinQuandrance: CGFloat = 0.003
-
+    static let kGridSize = CGSize(width: kLineHeight, height: kLineHeight)
 
     // MARK: CALayers
 
@@ -116,10 +113,15 @@ class CanvasView: UIView {
 
     var vertexToStartWidth = Vertex(location: CGPoint(),
                                     thickness: CGFloat())
-    var strokes = [Stroke]()
+    var strokes = Set<Stroke>()
     var currentStroke: Stroke? = nil
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
+
+    // MARK: Metadata for efficient erasing
+
+    var numOfGridsHorizontally: Int
+    var grids: [[Set<Stroke>]]
 
     // MARK: CanvasView Initializer / Deinitializer
 
@@ -129,6 +131,9 @@ class CanvasView: UIView {
         stripeLayer.stripeColor = CanvasView.kStripeColor
         stripeLayer.lineHeight = CanvasView.kLineHeight
         canvasLayer = CanvasLayer()
+
+        numOfGridsHorizontally = 0
+        grids = [[Set<Stroke>]]()
 
         // Initialize the UIView
         super.init(coder: aDecoder)
@@ -161,6 +166,10 @@ class CanvasView: UIView {
             CGSize(width: bounds.width, height: CanvasView.kLineHeight), false, 0.0)
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
+
+        // Setup grids
+        numOfGridsHorizontally = Int(bounds.width / CanvasView.kLineHeight) + 1
+        grids = [[Set<Stroke>](repeating: [], count: numOfGridsHorizontally)]
     }
 
     deinit {
@@ -220,6 +229,14 @@ class CanvasView: UIView {
                 return sz
             }()
             if newCanvasSize != canvas.size {
+                // Add new grids of Set<Stroke> for expanded region
+                let heightDiff = newCanvasSize.height - canvas.size.height
+                let numOfNewLines = Int(heightDiff / CanvasView.kLineHeight)
+                for _ in 0 ..< numOfNewLines {
+                    grids.append([Set<Stroke>](repeating: [], count: numOfGridsHorizontally))
+                }
+
+                // Draw the old image onto the new-sized image context
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
                 canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
                 canvas = UIGraphicsGetImageFromCurrentImageContext()!
@@ -238,10 +255,21 @@ class CanvasView: UIView {
             stripeLayer.removeAllAnimations()
         }
 
-
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
-            strokes.append(currentStroke!)
+            strokes.insert(currentStroke!)
+
+            // Add the stroke to the corresponding grids
+            for v in currentStroke!.vertices {
+                let (i, j) = v.grid(CanvasView.kGridSize)
+
+                // Check if vertex is outside of the view bounds
+                if j < numOfGridsHorizontally {
+                    grids[i][j].insert(currentStroke!)
+                }
+            }
+
+            // Lose track of the stroke
             currentStroke = nil
         } else {
             // Create a new image context from the old image
@@ -318,24 +346,23 @@ class CanvasView: UIView {
         cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
                                               thickness: 0.0)) }
 
-        // Obtain indices of vertices, which overlaps with the erase path
-        var markedStrokesForErasure = [Int]()
-        for (strokeIdx, stroke) in strokes.enumerated() {
-            for v in erasePath {
-                let p = v.location
-                if stroke.overlaps(with: p) {
-                    markedStrokesForErasure.append(strokeIdx)
-                    break
+        // Erase the overlapping strokes
+        var someStrokesErased = false
+        for v in erasePath {
+            let (i, j) = v.grid(CanvasView.kGridSize)
+            guard i < grids.count && j < numOfGridsHorizontally else { continue }
+
+            let grid = grids[i][j]
+            for s in grid {
+                if s.overlaps(with: v.location) {
+                    strokes.remove(s)
+                    for row in grids {
+                        for var g in row {
+                            g.remove(s)
+                        }
+                    }
+                    someStrokesErased = true
                 }
-            }
-        }
-
-        let someStrokesErased = !markedStrokesForErasure.isEmpty
-
-        // Remove the overlapping strokes from the list
-        if someStrokesErased {
-            for idx in markedStrokesForErasure.reversed() {
-                strokes.remove(at: idx)
             }
         }
 
@@ -351,6 +378,13 @@ class CanvasView: UIView {
         newCanvasBounds.size.width = bounds.width
         let n = CGFloat(Int(newCanvasBounds.height / CanvasView.kLineHeight))
         newCanvasBounds.size.height = (n + 1) * CanvasView.kLineHeight
+
+        // Remove unused grids
+        let heightDiff = canvas.size.height - newCanvasBounds.height
+        let numOfExcessLines = Int(heightDiff / CanvasView.kLineHeight)
+        for _ in 0 ..< numOfExcessLines {
+            grids.removeLast()
+        }
 
         // Calculate the new view size
         var newViewSize = strokesBounds

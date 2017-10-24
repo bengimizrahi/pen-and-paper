@@ -11,6 +11,12 @@ import UIKit
 struct Vertex {
     var location: CGPoint
     var thickness: CGFloat
+
+    func grid(_ gridSize: CGSize) -> (Int, Int) {
+        let i = Int(location.y / gridSize.height)
+        let j = Int(location.x / gridSize.width)
+        return (i, j)
+    }
 }
 
 class Stroke {
@@ -65,5 +71,15 @@ class Stroke {
             let box = CGRect(origin: vertices.first!.location, size: CGSize())
             return vertices.reduce(box) { $0.union(CGRect(origin: $1.location, size: CGSize())) }
         }
+    }
+}
+
+extension Stroke: Hashable {
+    public var hashValue: Int {
+        return ObjectIdentifier(self).hashValue
+    }
+
+    static func ==(lhs: Stroke, rhs: Stroke) -> Bool {
+        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
 }
