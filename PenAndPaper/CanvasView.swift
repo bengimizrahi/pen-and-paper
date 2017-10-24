@@ -262,7 +262,11 @@ class CanvasView: UIView {
             // Add the stroke to the corresponding grids
             for v in currentStroke!.vertices {
                 let (i, j) = v.grid(CanvasView.kGridSize)
-                grids[i][j].insert(currentStroke!)
+
+                // Check if vertex is outside of the view bounds
+                if j < numOfGridsHorizontally {
+                    grids[i][j].insert(currentStroke!)
+                }
             }
 
             // Lose track of the stroke
@@ -342,15 +346,20 @@ class CanvasView: UIView {
         cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
                                               thickness: 0.0)) }
 
-        // Obtain indices of vertices, which overlaps with the erase path
+        // Erase the overlapping strokes
         var someStrokesErased = false
-        for s in strokes {
-            for v in erasePath {
-                let p = v.location
-                if s.overlaps(with: p) {
+        for v in erasePath {
+            let (i, j) = v.grid(CanvasView.kGridSize)
+            let grid = grids[i][j]
+            for s in grid {
+                if s.overlaps(with: v.location) {
                     strokes.remove(s)
+                    for row in grids {
+                        for var g in row {
+                            g.remove(s)
+                        }
+                    }
                     someStrokesErased = true
-                    break
                 }
             }
         }
