@@ -232,10 +232,7 @@ class CanvasView: UIView {
             canvasLayer.frame.size = expandedSize
             stripeLayer.frame.size = expandedSize
 
-            // Set needs display for the sublayers
-            // WHY??????
-            canvasLayer.setNeedsDisplay()
-            canvasLayer.removeAllAnimations()
+            // Set needs display for stripe layer
             stripeLayer.setNeedsDisplay()
             stripeLayer.removeAllAnimations()
         }
