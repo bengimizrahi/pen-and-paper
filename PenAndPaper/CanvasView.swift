@@ -1,361 +1,174 @@
 //
 //  CanvasView.swift
-//  CanvasView
+//  PenAndPaper
 //
-//  Created by Bengi Mizrahi on 10/10/2017.
+//  Created by Bengi Mizrahi on 23.10.2017.
 //  Copyright © 2017 Bengi Mizrahi. All rights reserved.
 //
 
 import UIKit
 
-protocol DrawDelegate {
-    func bounds() -> CGRect
-    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect
-    func redraw()
-}
-
-class CirclePainter : DrawDelegate {
-
-    let sz: CGFloat = 5.0
-
-    var points = [CGPoint]()
-
-    func bounds() -> CGRect {
-        var box = points.reduce(CGRect()) { $0.union(CGRect(origin: $1, size: CGSize())) }
-        box.size.height += (sz / 2.0)
-        box.size.width += (sz / 2.0)
-        return box
-    }
-
-    func drawCircle(at rect: CGRect) {
-        let context = UIGraphicsGetCurrentContext()!
-        context.addEllipse(in: rect)
-        context.drawPath(using: .fill)
-    }
-
-    func circleRect(at point: CGPoint) -> CGRect {
-        let r = CGRect(origin: CGPoint(x: point.x - sz, y: point.y - sz),
-                       size: CGSize(width: 2 * sz, height: 2 * sz))
-        return r
-    }
-
-    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        UIColor.black.setFill()
-        var rr: CGRect? = nil
-        for ct in event.coalescedTouches(for: touch)! {
-            let c = ct.preciseLocation(in: view)
-            let r = circleRect(at: c)
-            drawCircle(at: r)
-            points.append(c)
-            rr = (rr == nil) ? r : rr?.union(r)
-        }
-        return rr!
-    }
-
-    func erase(rect: CGRect) {
-
-    }
-
-    func redraw() {
-        for p in points {
-            drawCircle(at: circleRect(at: p))
-        }
-    }
-}
-
-class DefaultPainter : DrawDelegate {
-
-    var strokeCollection = [Stroke]()
-    var currentStroke: Stroke? = nil
-    var startingVertex = Vertex(location: CGPoint(),
-                                thickness: CGFloat())
-
-    func bounds() -> CGRect {
-        return strokeCollection.reduce(CGRect()) { $0.union($1.frame()) }
-    }
-
-    func draw(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        var maxThicknessNoted: CGFloat = 0.0
-
-        // start a bezier path
-        UIColor.black.set()
+extension Stroke {
+    func draw() {
         let path = UIBezierPath()
 
-        var it = event.coalescedTouches(for: touch)!.makeIterator()
+        // Move to the first vertex location and set the initial thickness
+        let firstVertex = vertices.first!
+        path.move(to: firstVertex.location)
+        path.lineWidth = firstVertex.thickness
 
-        if touch.phase == .cancelled || touch.phase == .ended {
-            if let completedStroke = currentStroke {
-                strokeCollection.append(completedStroke)
-                currentStroke = nil
-            }
-            return CGRect()
-        }
-
-        // if touch began, use the first vertex as the starting vertex
-        if touch.phase == .began {
-            let firstTouch = it.next()!
-            let thickness = forceToThickness(force: firstTouch.force)
-            maxThicknessNoted = max(maxThicknessNoted, thickness)
-            startingVertex = Vertex(location: firstTouch.preciseLocation(in: view),
-                                    thickness: thickness)
-            currentStroke = Stroke()
-            currentStroke!.append(vertex: startingVertex)
-        }
-
-        // move to the start vertex
-        path.move(to: startingVertex.location)
-        path.lineWidth = startingVertex.thickness
-        var dirtyRect = CGRect(origin: startingVertex.location, size: CGSize())
-
-        // add the rest of the vertices to the path
-        while let ct = it.next() {
-            let thickness = forceToThickness(force: ct.force)
-            maxThicknessNoted = max(maxThicknessNoted, thickness)
-            let vertex = Vertex(location: ct.preciseLocation(in: view),
-                                thickness: thickness)
-            path.addLine(to: vertex.location)
+        // Add subsequent vertex locations and make strokes with corresponding
+        // thicknesses.
+        for v in vertices[1...] {
+            path.addLine(to: v.location)
             path.stroke()
-            path.move(to: vertex.location)
-            path.lineWidth = vertex.thickness
-            currentStroke!.append(vertex: vertex)
-            dirtyRect = dirtyRect.union(CGRect(origin: vertex.location, size: CGSize()))
-        }
 
-        let lastTouch = event.coalescedTouches(for: touch)!.last!
-        startingVertex = Vertex(location: lastTouch.preciseLocation(in: view),
-                                thickness: forceToThickness(force: lastTouch.force))
-
-        return dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
-    }
-
-    func erase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> Bool {
-        var erasePath = (touch.phase == .began) ? [] : [startingVertex]
-        let touches = event.coalescedTouches(for: touch)!
-        touches.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: view),
-                                                      thickness: 0.0)) }
-        var markedStrokesForErasure = [Int]()
-        for (idx, stroke) in strokeCollection.enumerated() {
-            for i in 0 ..< erasePath.count {
-                let p = erasePath[i].location
-                if stroke.overlaps(with: p) {
-                    markedStrokesForErasure.append(idx)
-                    break
-                }
-            }
-        }
-
-        let atLeastOneStrokeErased = !markedStrokesForErasure.isEmpty
-        if atLeastOneStrokeErased {
-            for idx in markedStrokesForErasure.reversed() {
-                strokeCollection.remove(at: idx)
-            }
-        }
-
-        if touch.phase == .began || touch.phase == .moved {
-            startingVertex = Vertex(location: touches.first!.preciseLocation(in: view),
-                                    thickness: 0.0)
-        }
-
-        return atLeastOneStrokeErased
-    }
-
-    func redraw() {
-        UIColor.black.set()
-
-        func drawStroke(stroke: Stroke) {
-            let path = UIBezierPath()
-
-            assert(stroke.vertices.count > 0)
-
-            let firstVertex = stroke.vertices.first!
-            path.move(to: firstVertex.location)
-            path.lineWidth = firstVertex.thickness
-            for vertex in stroke.vertices[1...] {
-                path.addLine(to: vertex.location)
-                path.stroke()
-                path.move(to: vertex.location)
-                path.lineWidth = vertex.thickness
-            }
-        }
-
-        for stroke in strokeCollection {
-            drawStroke(stroke: stroke)
-        }
-        if let currentStroke = currentStroke {
-            drawStroke(stroke: currentStroke)
+            path.move(to: v.location)
+            path.lineWidth = v.thickness
         }
     }
 }
 
-class DrawingAgent {
+class StripeLayer: CATiledLayer, CALayerDelegate {
 
-    static let kOffscreenImageResizingAmount: CGFloat = 100.0
+    var stripeColor: UIColor? = nil
+    var lineHeight: CGFloat? = nil
 
-    var bounds: CGRect
-    var canvas: UIImage
-
-    var dirtyRect: CGRect? = nil
-    var drawDelegate = DefaultPainter()
-
-    init(bounds: CGRect) {
-        self.bounds = bounds
-
-        // create an empty canvas
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
-        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+    override var bounds: CGRect {
+        didSet {
+            let size = CGSize(width: bounds.width, height: lineHeight!)
+            let scaledSize = size.applying(
+                    CGAffineTransform(scaleX: contentsScale, y: contentsScale))
+            tileSize = scaledSize
+        }
     }
 
-    func resize(dirtyRect: CGRect) {
-        let resizingTriggeringEdge = bounds.height - CanvasView.kResizingTriggeringMargin
-        guard dirtyRect.maxY >= resizingTriggeringEdge else { return }
+    func draw(_ layer: CALayer, in ctx: CGContext) {
+        UIGraphicsPushContext(ctx)
+        let rect = ctx.boundingBoxOfClipPath
 
-        let newBounds = { () -> CGRect in
-            var b = self.bounds
-            let n = CGFloat(Int((dirtyRect.origin.y + dirtyRect.height) /
-                    DrawingAgent.kOffscreenImageResizingAmount))
-            let newHeight = (n + 1) * DrawingAgent.kOffscreenImageResizingAmount
-            b.size.height = newHeight
-            return b
-        }()
-        guard newBounds != bounds else { return }
-
-        UIGraphicsBeginImageContextWithOptions(newBounds.size, false, 0.0)
-        canvas.draw(in: bounds)
-        canvas = UIGraphicsGetImageFromCurrentImageContext()!
-        bounds = newBounds
-        UIGraphicsEndImageContext()
+        let path = UIBezierPath()
+        stripeColor!.set()
+        let baselineY = rect.minY + lineHeight! - 1.5
+        path.move(to: CGPoint(x: rect.minX, y: baselineY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: baselineY))
+        path.lineWidth = 0.5
+        path.stroke()
+        UIGraphicsPopContext()
     }
+}
 
-    func shrinkSize(_ newSize: CGSize) {
-        bounds = CGRect(origin:CGPoint(), size: newSize)
-    }
 
-    func expandDirtyRect(with rect: CGRect) {
-        dirtyRect = (dirtyRect == nil) ? rect : dirtyRect!.union(rect)
-    }
+class CanvasLayer: CALayer, CALayerDelegate {
+    weak var parentView: CanvasView? = nil
 
-    func handleTouch(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> CGRect {
-        // start with a new canvas
-        UIGraphicsBeginImageContextWithOptions(bounds.size, false, 0.0)
+    func draw(_ layer: CALayer, in ctx: CGContext) {
+        UIGraphicsPushContext(ctx)
 
-        // first draw the old canvas into the new one
-        canvas.draw(in: bounds)
+        // Obtain the rect where the display will happen
+        let rect = ctx.boundingBoxOfClipPath
 
-        // call the draw delegate
-        let rect = drawDelegate.draw(touch, event, view)
-        expandDirtyRect(with: rect)
+        // ...
+        let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.canvas.size)
+        let rectToPaint = canvasBounds.intersection(rect)
+        let rectToPaintInPixels = rectToPaint.applying(
+            CGAffineTransform(scaleX: contentsScale,
+                              y: contentsScale))
 
-        canvas = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-
-        return dirtyRect!
-    }
-
-    func handleErase(_ touch: UITouch, _ event: UIEvent, _ view: UIView) -> (Bool, CGRect) {
-        let erased = drawDelegate.erase(touch, event, view)
-        guard erased else { return (false, CGRect()) }
-
-        var shrinkedBounds = drawDelegate.bounds()
-        shrinkedBounds.size.width = bounds.width
-        shrinkedBounds.size.height = max(shrinkedBounds.height, CanvasView.kInterBaselineDistance)
-
-        UIGraphicsBeginImageContextWithOptions(shrinkedBounds.size, false, 0.0)
-        drawDelegate.redraw()
-        canvas = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
-
-        return (erased, shrinkedBounds)
-    }
-
-    func drawRect(_ rect: CGRect) {
-        let scale = UIScreen.main.scale
-        let canvasRectInPoints = CGRect(origin: CGPoint(), size: canvas.size)
-        let rectToDrawInPoints = canvasRectInPoints.intersection(rect)
-        let rectToDrawInPixels = rectToDrawInPoints.applying(CGAffineTransform(scaleX: scale, y: scale))
-
-        if let subCgImage = canvas.cgImage!.cropping(to: rectToDrawInPixels) {
+        // ...
+        if let subCgImage = parentView!.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
-            subimage.draw(in: rectToDrawInPoints)
+            subimage.draw(in: rectToPaint)
         }
-        dirtyRect = nil
+
+        UIGraphicsPopContext()
+
+        // ...
+        parentView!.rectNeedsDisplay = nil
     }
 }
+
 
 class CanvasView: UIView {
 
-    static let kResizingTriggeringMargin: CGFloat = 20.0
-    static let kInterBaselineDistance: CGFloat = 40.0
-    static let kBaselineColor = UIColor(red: 179.0 / 255.0,
+    // MARK: CanvasView Constants
+
+    static let kMargin: CGFloat = 20.0
+    static let kLineHeight: CGFloat = 40.0
+    static let kStripeColor = UIColor(red: 179.0 / 255.0,
                                         green: 223.0 / 255.0,
                                         blue: 251.0 / 255.0,
                                         alpha: 1.0)
+    static let kMinQuandrance: CGFloat = 0.003
 
-    class StripeLayer: CATiledLayer, CALayerDelegate {
-        func draw(_ layer: CALayer, in ctx: CGContext) {
-            UIGraphicsPushContext(ctx)
-            let rect = ctx.boundingBoxOfClipPath
 
-            let path = UIBezierPath()
-            kBaselineColor.set()
-            let baselineY = rect.minY + kInterBaselineDistance - 1.5
-            path.move(to: CGPoint(x: rect.minX, y: baselineY))
-            path.addLine(to: CGPoint(x: rect.maxX, y: baselineY))
-            path.lineWidth = 0.5
-            path.stroke()
-            UIGraphicsPopContext()
-        }
-    }
-
-    class CanvasLayer: CALayer, CALayerDelegate {
-        weak var drawingAgent: DrawingAgent? = nil
-
-        func draw(_ layer: CALayer, in ctx: CGContext) {
-            guard let agent = drawingAgent else { return }
-
-            UIGraphicsPushContext(ctx)
-            agent.drawRect(ctx.boundingBoxOfClipPath)
-            UIGraphicsPopContext()
-        }
-    }
+    // MARK: CALayers
 
     var stripeLayer: StripeLayer
     var canvasLayer: CanvasLayer
-    lazy var drawingAgent: DrawingAgent = { [unowned self] in
-        return DrawingAgent(bounds: bounds)
-    }()
+
+    // MARK: States
+
+    var touchIsAssociatedWithErasing = false
+
+    // MARK: Drawing Information
+
+    var vertexToStartWidth = Vertex(location: CGPoint(),
+                                    thickness: CGFloat())
+    var strokes = [Stroke]()
+    var currentStroke: Stroke? = nil
+    var canvas = UIImage()
+    var rectNeedsDisplay: CGRect? = nil
+
+    // MARK: CanvasView Initializer / Deinitializer
 
     required init?(coder aDecoder: NSCoder) {
-        stripeLayer = StripeLayer()
+        // First initialize CanvasView's member variables
+        stripeLayer = StripeLayer(coder: aDecoder)!
+        stripeLayer.stripeColor = CanvasView.kStripeColor
+        stripeLayer.lineHeight = CanvasView.kLineHeight
         canvasLayer = CanvasLayer()
 
+        // Initialize the UIView
         super.init(coder: aDecoder)
+        // Now, we have bounds/frame information
 
-        canvasLayer.drawingAgent = drawingAgent
+        // Bind the canvas layer to this view for drawing context
+        canvasLayer.parentView = self
 
+        // Set scale and gravity information
         let scale = UIScreen.main.scale
         stripeLayer.contentsScale = scale
         canvasLayer.contentsScale = scale
         canvasLayer.contentsGravity = kCAGravityBottom
 
+        // Set the frames of the sublayers. This will also set up the
+        // tile size of the StripeLayer.
         stripeLayer.frame = bounds
         canvasLayer.frame = bounds
 
-        stripeLayer.tileSize = CGSize(
-                width: bounds.width,
-                height: CanvasView.kInterBaselineDistance).applying(
-                    CGAffineTransform(scaleX: scale, y: scale))
-
+        // Set up delegate of the layers as themselves
         stripeLayer.delegate = stripeLayer
         canvasLayer.delegate = canvasLayer
 
+        // Add the layers as sublayers
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
+
+        // Setup canvas
+        UIGraphicsBeginImageContextWithOptions(
+            CGSize(width: bounds.width, height: CanvasView.kLineHeight), false, 0.0)
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
     }
 
     deinit {
+        // Tear down the delegate relationship
         stripeLayer.delegate = nil
         canvasLayer.delegate = nil
     }
+
+    // MARK: Helper Member Functions
 
     func goodQuadrance(touch: UITouch) -> Bool {
         if touch.phase == .began { return true }
@@ -363,83 +176,225 @@ class CanvasView: UIView {
         let curr = touch.preciseLocation(in: self)
         let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
         let quadrance = dx * dx + dy * dy
-        return quadrance >= minQuandrance
+        return quadrance >= CanvasView.kMinQuandrance
     }
 
-    func resize(_ dirtyRect: CGRect) {
-        let resizingTriggeringHeight = bounds.height - CanvasView.kResizingTriggeringMargin
-        guard dirtyRect.maxY >= resizingTriggeringHeight else { return }
-
-        self.drawingAgent.resize(dirtyRect: dirtyRect)
-
-        let newHeight = dirtyRect.origin.y + dirtyRect.height + CanvasView.kResizingTriggeringMargin
-        let newSize = CGSize(width: bounds.width, height: newHeight)
-
-        frame.size = newSize
-        canvasLayer.frame.size = newSize
-        stripeLayer.frame.size = newSize
-
-        canvasLayer.setNeedsDisplay()
-        canvasLayer.removeAllAnimations()
-        stripeLayer.setNeedsDisplay()
-        stripeLayer.removeAllAnimations()
+    func eraserButtonSelected() -> Bool {
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        return delegate.eraserButtonSelected
     }
 
-    func shrinkSize(_ size: CGSize) {
-        var newSize = size
-        newSize.height = max(newSize.height, CanvasView.kInterBaselineDistance)
+    // MARK: Handle Touches
 
-        self.drawingAgent.shrinkSize(newSize)
+    func handleTouches(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Exclude touches that move only in the 'force' dimension
+        guard goodQuadrance(touch: touches.first!) else { return }
 
-        frame.size = newSize
-        canvasLayer.frame.size = newSize
-        stripeLayer.frame.size = newSize
-
-        canvasLayer.setNeedsDisplay()
-        canvasLayer.removeAllAnimations()
-        stripeLayer.setNeedsDisplay()
-        stripeLayer.removeAllAnimations()
+        // Forward event to the current handler
+        if touchIsAssociatedWithErasing {
+            handleTouchesForErasing(touches, with: event)
+        } else {
+            handleTouchesForDrawing(touches, with: event)
+        }
     }
+
+    func handleTouchesForDrawing(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let t = touches.first!
+
+        // Ignore .stationary touches
+        guard t.phase != .stationary else { return }
+
+        // Calculate the bounding box of the coalesced touches
+        let coalescedTouches = event!.coalescedTouches(for: t)!
+        let box = boundingBox(touches: coalescedTouches, in: self)
+
+        // Expand the size if needed
+        let expansionTriggeringBoundary = bounds.height - CanvasView.kMargin
+        if box!.maxY >= expansionTriggeringBoundary {
+            let newCanvasSize = { () -> CGSize in
+                var sz = self.canvas.size
+                let n = CGFloat(Int(box!.maxY / CanvasView.kLineHeight))
+                let newHeight = (n + 1) * CanvasView.kLineHeight
+                sz.height = newHeight
+                return sz
+            }()
+            if newCanvasSize != canvas.size {
+                UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
+                canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
+                canvas = UIGraphicsGetImageFromCurrentImageContext()!
+                UIGraphicsEndImageContext()
+            }
+
+            // Change the bounds of the view and sublayers
+            let expandedSize = CGSize(width: bounds.width,
+                                 height: box!.maxY + CanvasView.kMargin)
+            frame.size = expandedSize
+            canvasLayer.frame.size = expandedSize
+            stripeLayer.frame.size = expandedSize
+
+            // Set needs display for the sublayers
+            // WHY??????
+            canvasLayer.setNeedsDisplay()
+            canvasLayer.removeAllAnimations()
+            stripeLayer.setNeedsDisplay()
+            stripeLayer.removeAllAnimations()
+        }
+
+
+        if t.phase == .cancelled || t.phase == .ended {
+            // Collect the stroke
+            strokes.append(currentStroke!)
+            currentStroke = nil
+        } else {
+            // Create a new image context from the old image
+            UIGraphicsBeginImageContextWithOptions(canvas.size, false, 0.0)
+            canvas.draw(at: CGPoint())
+
+            // Draw the touches
+            var maxThicknessNoted: CGFloat = 0.0
+            UIColor.black.set()
+            let path = UIBezierPath()
+            var it = event!.coalescedTouches(for: t)!.makeIterator()
+
+            if t.phase == .began {
+                // Reset the starting vertex with the first touch location
+                let firstTouch = it.next()!
+                let thickness = forceToThickness(force: firstTouch.force)
+                maxThicknessNoted = max(maxThicknessNoted, thickness)
+                vertexToStartWidth = Vertex(location: firstTouch.preciseLocation(in: self),
+                                            thickness: thickness)
+
+                // Create a new stroke and insert the first vertex
+                currentStroke = Stroke()
+                currentStroke!.append(vertex: vertexToStartWidth)
+            }
+
+            // Move the bezier path to the starting vertex
+            path.move(to: vertexToStartWidth.location)
+            path.lineWidth = vertexToStartWidth.thickness
+            var dirtyRect = CGRect(origin: vertexToStartWidth.location, size: CGSize())
+
+            // Add the rest of the vertices to the path
+            while let nt = it.next() {
+                let thickness = forceToThickness(force: nt.force)
+                maxThicknessNoted = max(maxThicknessNoted, thickness)
+
+                let v = Vertex(location: nt.preciseLocation(in: self), thickness: thickness)
+                path.addLine(to: v.location)
+                path.stroke()
+
+                path.move(to: v.location)
+                path.lineWidth = v.thickness
+
+                currentStroke!.append(vertex: v)
+
+                dirtyRect = dirtyRect.union(CGRect(origin: v.location, size: CGSize()))
+            }
+
+            // Set the starting vertex to the last drawn vertex
+            vertexToStartWidth = Vertex(location: t.preciseLocation(in: self),
+                                        thickness: forceToThickness(force: t.force))
+
+            // Add an inset of size of maximum thickness to the dirty rect
+            let insetDirtyRect = dirtyRect.insetBy(dx: -maxThicknessNoted, dy: -maxThicknessNoted)
+
+            // Update the rect that needs display
+            rectNeedsDisplay = (rectNeedsDisplay == nil) ?
+                    insetDirtyRect : rectNeedsDisplay!.union(insetDirtyRect)
+
+            // Get the final image
+            canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+
+            // Set needs display for the corresponding rect
+            canvasLayer.setNeedsDisplay(rectNeedsDisplay!)
+        }
+    }
+
+    func handleTouchesForErasing(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Convert coalesced touches into vertices
+        let t = touches.first!
+        var erasePath = (t.phase == .began) ? [] : [vertexToStartWidth]
+        let cts = event!.coalescedTouches(for: t)!
+        cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
+                                              thickness: 0.0)) }
+
+        // Obtain indices of vertices, which overlaps with the erase path
+        var markedStrokesForErasure = [Int]()
+        for (strokeIdx, stroke) in strokes.enumerated() {
+            for v in erasePath {
+                let p = v.location
+                if stroke.overlaps(with: p) {
+                    markedStrokesForErasure.append(strokeIdx)
+                    break
+                }
+            }
+        }
+
+        let someStrokesErased = !markedStrokesForErasure.isEmpty
+
+        // Remove the overlapping strokes from the list
+        if someStrokesErased {
+            for idx in markedStrokesForErasure.reversed() {
+                strokes.remove(at: idx)
+            }
+        }
+
+        // Set the last touch location as the starting vertex for the subsequent
+        // touch event.
+        vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
+
+        // Calculate the minimum CGRect that bounds all the strokes
+        let strokesBounds = strokes.reduce(CGRect()) { $0.union($1.frame()) }
+
+        // Calculate the new bounds to use
+        var bnd = strokesBounds
+        bnd.size.width = bounds.width
+        bnd.size.height = max(bnd.height, CanvasView.kLineHeight)
+
+        // Redraw the strokes to a new image context
+        UIGraphicsBeginImageContextWithOptions(bnd.size, false, 0.0)
+        UIColor.black.set()
+        for s in strokes {
+            s.draw()
+        }
+        if let s = currentStroke {
+            s.draw()
+        }
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        // Shrink the size if needed
+        if someStrokesErased {
+            // Change the bounds of the view and sublayers
+            frame.size = bnd.size
+            canvasLayer.frame.size = bnd.size
+            stripeLayer.frame.size = bnd.size
+
+            // Set needs display for the sublayers
+            canvasLayer.setNeedsDisplay()
+            canvasLayer.removeAllAnimations()
+            stripeLayer.setNeedsDisplay()
+            stripeLayer.removeAllAnimations()
+        }
+    }
+
+    // MARK: Touch Began / Moved / Cancelled / Ended
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesMoved(touches, with: event)
+        touchIsAssociatedWithErasing = eraserButtonSelected()
+        handleTouches(touches, with: event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard goodQuadrance(touch: touches.first!) else { return }
-
-        let cts = event!.coalescedTouches(for: touches.first!)!
-        let boundingBox = BoundingBox()
-        for t in cts {
-            boundingBox.expand(with: CGRect(origin: t.preciseLocation(in: self),
-                                            size: CGSize()))
-        }
-        let delegate = UIApplication.shared.delegate as! AppDelegate
-        let eraserEnabled = delegate.eraserMode
-        if eraserEnabled == false {
-            resize(boundingBox.box!)
-            let dirtyRect = drawingAgent.handleTouch(touches.first!, event!, self)
-
-            let ph = touches.first!.phase
-            if ph == .began || ph == .moved {
-                canvasLayer.setNeedsDisplay(dirtyRect)
-            }
-        } else {
-            guard let t = touches.first, (t.phase == .began || t.phase == .moved)
-                else { return }
-
-            let (erased, shrinkedBounds) = drawingAgent.handleErase(touches.first!, event!, self)
-            if erased {
-                shrinkSize(shrinkedBounds.size)
-            }
-        }
+        handleTouches(touches, with: event)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesMoved(touches, with: event)
+        handleTouches(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesMoved(touches, with: event)
+        handleTouches(touches, with: event)
     }
 }
