@@ -350,6 +350,8 @@ class CanvasView: UIView {
         var someStrokesErased = false
         for v in erasePath {
             let (i, j) = v.grid(CanvasView.kGridSize)
+            guard i < grids.count && j < numOfGridsHorizontally else { continue }
+
             let grid = grids[i][j]
             for s in grid {
                 if s.overlaps(with: v.location) {
@@ -376,6 +378,13 @@ class CanvasView: UIView {
         newCanvasBounds.size.width = bounds.width
         let n = CGFloat(Int(newCanvasBounds.height / CanvasView.kLineHeight))
         newCanvasBounds.size.height = (n + 1) * CanvasView.kLineHeight
+
+        // Remove unused grids
+        let heightDiff = canvas.size.height - newCanvasBounds.height
+        let numOfExcessLines = Int(heightDiff / CanvasView.kLineHeight)
+        for _ in 0 ..< numOfExcessLines {
+            grids.removeLast()
+        }
 
         // Calculate the new view size
         var newViewSize = strokesBounds
