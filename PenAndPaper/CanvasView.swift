@@ -69,14 +69,12 @@ class CanvasLayer: CALayer, CALayerDelegate {
         // Obtain the rect where the display will happen
         let rect = ctx.boundingBoxOfClipPath
 
-        // ...
         let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.canvas.size)
         let rectToPaint = canvasBounds.intersection(rect)
         let rectToPaintInPixels = rectToPaint.applying(
             CGAffineTransform(scaleX: contentsScale,
                               y: contentsScale))
 
-        // ...
         if let subCgImage = parentView!.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
             subimage.draw(in: rectToPaint)
@@ -84,7 +82,6 @@ class CanvasLayer: CALayer, CALayerDelegate {
 
         UIGraphicsPopContext()
 
-        // ...
         parentView!.rectNeedsDisplay = nil
     }
 }
@@ -101,7 +98,7 @@ class CanvasView: UIView {
                                         blue: 251.0 / 255.0,
                                         alpha: 1.0)
     static let kMinQuandrance: CGFloat = 0.003
-
+    static let kGridSize = CGSize(width: kLineHeight, height: kLineHeight)
 
     // MARK: CALayers
 
@@ -121,6 +118,11 @@ class CanvasView: UIView {
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
 
+    // MARK: Metadata for efficient erasing
+
+    var numOfGridsHorizontally: Int
+    var grids: [[Set<Stroke>]]
+
     // MARK: CanvasView Initializer / Deinitializer
 
     required init?(coder aDecoder: NSCoder) {
@@ -129,6 +131,9 @@ class CanvasView: UIView {
         stripeLayer.stripeColor = CanvasView.kStripeColor
         stripeLayer.lineHeight = CanvasView.kLineHeight
         canvasLayer = CanvasLayer()
+
+        numOfGridsHorizontally = 0
+        grids = [[Set<Stroke>]]()
 
         // Initialize the UIView
         super.init(coder: aDecoder)
@@ -161,6 +166,10 @@ class CanvasView: UIView {
             CGSize(width: bounds.width, height: CanvasView.kLineHeight), false, 0.0)
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
+
+        // Setup grids
+        numOfGridsHorizontally = Int(bounds.width / CanvasView.kLineHeight) + 1
+        grids = [[Set<Stroke>](repeating: [], count: numOfGridsHorizontally)]
     }
 
     deinit {
@@ -220,6 +229,14 @@ class CanvasView: UIView {
                 return sz
             }()
             if newCanvasSize != canvas.size {
+                // Add new grids of Set<Stroke> for expanded region
+                let heightDiff = newCanvasSize.height - canvas.size.height
+                let numOfNewLines = Int(heightDiff / CanvasView.kLineHeight)
+                for _ in 0 ..< numOfNewLines {
+                    grids.append([Set<Stroke>](repeating: [], count: numOfGridsHorizontally))
+                }
+
+                // Draw the old image onto the new-sized image context
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
                 canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
                 canvas = UIGraphicsGetImageFromCurrentImageContext()!
@@ -238,10 +255,17 @@ class CanvasView: UIView {
             stripeLayer.removeAllAnimations()
         }
 
-
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
             strokes.append(currentStroke!)
+
+            // Add the stroke to the corresponding grids
+            for v in currentStroke!.vertices {
+                let (i, j) = v.grid(CanvasView.kGridSize)
+                grids[i][j].insert(currentStroke!)
+            }
+
+            // Lose track of the stroke
             currentStroke = nil
         } else {
             // Create a new image context from the old image
