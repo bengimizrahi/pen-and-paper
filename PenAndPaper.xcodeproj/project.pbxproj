@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		ED6DDF021F9DE26700604D26 /* CanvasView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6DDF011F9DE26700604D26 /* CanvasView.swift */; };
+		ED6DDF021F9DE26700604D26 /* TaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED6DDF011F9DE26700604D26 /* TaskView.swift */; };
+		EDD8D1C61FA73E17003C833E /* Task.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDD8D1C51FA73E17003C833E /* Task.swift */; };
 		EDEFE37E1F8F82440009998B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE37D1F8F82440009998B /* AppDelegate.swift */; };
 		EDEFE3801F8F82440009998B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDEFE37F1F8F82440009998B /* ViewController.swift */; };
 		EDEFE3831F8F82440009998B /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EDEFE3811F8F82440009998B /* Main.storyboard */; };
@@ -37,7 +38,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		ED6DDF011F9DE26700604D26 /* CanvasView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CanvasView.swift; sourceTree = "<group>"; };
+		ED6DDF011F9DE26700604D26 /* TaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskView.swift; sourceTree = "<group>"; };
+		EDD8D1C51FA73E17003C833E /* Task.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Task.swift; sourceTree = "<group>"; };
 		EDEFE37A1F8F82440009998B /* PenAndPaper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PenAndPaper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EDEFE37D1F8F82440009998B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EDEFE37F1F8F82440009998B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -103,9 +105,10 @@
 		EDEFE37C1F8F82440009998B /* PenAndPaper */ = {
 			isa = PBXGroup;
 			children = (
-				ED6DDF011F9DE26700604D26 /* CanvasView.swift */,
 				EDEFE3AC1F8F82BA0009998B /* StrokeDataModel.swift */,
 				EDEFE3AB1F8F82BA0009998B /* Utility.swift */,
+				ED6DDF011F9DE26700604D26 /* TaskView.swift */,
+				EDD8D1C51FA73E17003C833E /* Task.swift */,
 				EDEFE37D1F8F82440009998B /* AppDelegate.swift */,
 				EDEFE37F1F8F82440009998B /* ViewController.swift */,
 				EDEFE3811F8F82440009998B /* Main.storyboard */,
@@ -270,8 +273,9 @@
 			files = (
 				EDEFE3801F8F82440009998B /* ViewController.swift in Sources */,
 				EDEFE37E1F8F82440009998B /* AppDelegate.swift in Sources */,
-				ED6DDF021F9DE26700604D26 /* CanvasView.swift in Sources */,
+				ED6DDF021F9DE26700604D26 /* TaskView.swift in Sources */,
 				EDEFE3AE1F8F82BA0009998B /* Utility.swift in Sources */,
+				EDD8D1C61FA73E17003C833E /* Task.swift in Sources */,
 				EDEFE3AF1F8F82BA0009998B /* StrokeDataModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

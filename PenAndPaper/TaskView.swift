@@ -1,5 +1,5 @@
 //
-//  CanvasView.swift
+//  TaskView.swift
 //  PenAndPaper
 //
 //  Created by Bengi Mizrahi on 23.10.2017.
@@ -61,7 +61,7 @@ class StripeLayer: CATiledLayer, CALayerDelegate {
 
 
 class CanvasLayer: CALayer, CALayerDelegate {
-    weak var parentView: CanvasView? = nil
+    weak var parentView: TaskView? = nil
 
     func draw(_ layer: CALayer, in ctx: CGContext) {
         UIGraphicsPushContext(ctx)
@@ -87,7 +87,7 @@ class CanvasLayer: CALayer, CALayerDelegate {
 }
 
 
-class CanvasView: UIView {
+class TaskView: UIView {
 
     // MARK: CanvasView Constants
 
@@ -113,7 +113,6 @@ class CanvasView: UIView {
 
     var vertexToStartWidth = Vertex(location: CGPoint(),
                                     thickness: CGFloat())
-    var strokes = Set<Stroke>()
     var currentStroke: Stroke? = nil
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
@@ -123,20 +122,25 @@ class CanvasView: UIView {
     var numOfGridsHorizontally: Int
     var grids: [[Set<Stroke>]]
 
+    // MARK: Data
+
+    weak var task: Task!
+
     // MARK: CanvasView Initializer / Deinitializer
 
-    required init?(coder aDecoder: NSCoder) {
+    init() {
         // First initialize CanvasView's member variables
-        stripeLayer = StripeLayer(coder: aDecoder)!
-        stripeLayer.stripeColor = CanvasView.kStripeColor
-        stripeLayer.lineHeight = CanvasView.kLineHeight
+        stripeLayer = StripeLayer()
+        stripeLayer.stripeColor = TaskView.kStripeColor
+        stripeLayer.lineHeight = TaskView.kLineHeight
         canvasLayer = CanvasLayer()
 
         numOfGridsHorizontally = 0
         grids = [[Set<Stroke>]]()
 
         // Initialize the UIView
-        super.init(coder: aDecoder)
+        let screenWidth = UIScreen.main.bounds.width
+        super.init(frame: CGRect(x: 0.0, y: 0.0, width: screenWidth, height: TaskView.kLineHeight))
         // Now, we have bounds/frame information
 
         // Bind the canvas layer to this view for drawing context
@@ -163,13 +167,17 @@ class CanvasView: UIView {
 
         // Setup canvas
         UIGraphicsBeginImageContextWithOptions(
-            CGSize(width: bounds.width, height: CanvasView.kLineHeight), false, 0.0)
+            CGSize(width: bounds.width, height: TaskView.kLineHeight), false, 0.0)
         canvas = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
 
         // Setup grids
-        numOfGridsHorizontally = Int(bounds.width / CanvasView.kLineHeight) + 1
+        numOfGridsHorizontally = Int(bounds.width / TaskView.kLineHeight) + 1
         grids = [[Set<Stroke>](repeating: [], count: numOfGridsHorizontally)]
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     deinit {
@@ -186,7 +194,7 @@ class CanvasView: UIView {
         let curr = touch.preciseLocation(in: self)
         let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
         let quadrance = dx * dx + dy * dy
-        return quadrance >= CanvasView.kMinQuandrance
+        return quadrance >= TaskView.kMinQuandrance
     }
 
     func eraserButtonSelected() -> Bool {
@@ -219,19 +227,19 @@ class CanvasView: UIView {
         let box = boundingBox(touches: coalescedTouches, in: self)
 
         // Expand the size if needed
-        let expansionTriggeringBoundary = bounds.height - CanvasView.kMargin
+        let expansionTriggeringBoundary = bounds.height - TaskView.kMargin
         if box!.maxY >= expansionTriggeringBoundary {
             let newCanvasSize = { () -> CGSize in
                 var sz = self.canvas.size
-                let n = CGFloat(Int(box!.maxY / CanvasView.kLineHeight))
-                let newHeight = (n + 1) * CanvasView.kLineHeight
+                let n = CGFloat(Int(box!.maxY / TaskView.kLineHeight))
+                let newHeight = (n + 1) * TaskView.kLineHeight
                 sz.height = newHeight
                 return sz
             }()
             if newCanvasSize != canvas.size {
                 // Add new grids of Set<Stroke> for expanded region
                 let heightDiff = newCanvasSize.height - canvas.size.height
-                let numOfNewLines = Int(heightDiff / CanvasView.kLineHeight)
+                let numOfNewLines = Int(heightDiff / TaskView.kLineHeight)
                 for _ in 0 ..< numOfNewLines {
                     grids.append([Set<Stroke>](repeating: [], count: numOfGridsHorizontally))
                 }
@@ -245,7 +253,7 @@ class CanvasView: UIView {
 
             // Change the bounds of the view and sublayers
             let expandedSize = CGSize(width: bounds.width,
-                                 height: box!.maxY + CanvasView.kMargin)
+                                 height: box!.maxY + TaskView.kMargin)
             frame.size = expandedSize
             canvasLayer.frame.size = expandedSize
             stripeLayer.frame.size = expandedSize
@@ -257,11 +265,11 @@ class CanvasView: UIView {
 
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
-            strokes.insert(currentStroke!)
+            task.strokes.insert(currentStroke!)
 
             // Add the stroke to the corresponding grids
             for v in currentStroke!.vertices {
-                let (i, j) = v.grid(CanvasView.kGridSize)
+                let (i, j) = v.grid(TaskView.kGridSize)
 
                 // Check if vertex is outside of the view bounds
                 if j < numOfGridsHorizontally {
@@ -349,13 +357,13 @@ class CanvasView: UIView {
         // Erase the overlapping strokes
         var someStrokesErased = false
         for v in erasePath {
-            let (i, j) = v.grid(CanvasView.kGridSize)
+            let (i, j) = v.grid(TaskView.kGridSize)
             guard i < grids.count && j < numOfGridsHorizontally else { continue }
 
             let grid = grids[i][j]
             for s in grid {
                 if s.overlaps(with: v.location) {
-                    strokes.remove(s)
+                    task.strokes.remove(s)
                     for row in grids {
                         for var g in row {
                             g.remove(s)
@@ -371,17 +379,17 @@ class CanvasView: UIView {
         vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
 
         // Calculate the minimum CGRect that bounds all the strokes
-        let strokesBounds = strokes.reduce(CGRect()) { $0.union($1.frame()) }
+        let strokesBounds = task.strokes.reduce(CGRect()) { $0.union($1.frame()) }
 
         // Calculate the new canvas size
         var newCanvasBounds = strokesBounds
         newCanvasBounds.size.width = bounds.width
-        let n = CGFloat(Int(newCanvasBounds.height / CanvasView.kLineHeight))
-        newCanvasBounds.size.height = (n + 1) * CanvasView.kLineHeight
+        let n = CGFloat(Int(newCanvasBounds.height / TaskView.kLineHeight))
+        newCanvasBounds.size.height = (n + 1) * TaskView.kLineHeight
 
         // Remove unused grids
         let heightDiff = canvas.size.height - newCanvasBounds.height
-        let numOfExcessLines = Int(heightDiff / CanvasView.kLineHeight)
+        let numOfExcessLines = Int(heightDiff / TaskView.kLineHeight)
         for _ in 0 ..< numOfExcessLines {
             grids.removeLast()
         }
@@ -389,12 +397,12 @@ class CanvasView: UIView {
         // Calculate the new view size
         var newViewSize = strokesBounds
         newViewSize.size.width = bounds.width
-        newViewSize.size.height = max(CanvasView.kLineHeight, strokesBounds.maxY + CanvasView.kMargin)
+        newViewSize.size.height = max(TaskView.kLineHeight, strokesBounds.maxY + TaskView.kMargin)
 
         // Redraw the strokes to a new image context
         UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
         UIColor.black.set()
-        for s in strokes {
+        for s in task.strokes {
             s.draw()
         }
         if let s = currentStroke {

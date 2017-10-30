@@ -10,6 +10,8 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    var task = Task()
+    
     @IBAction func eraserEnabled(_ sender: UIButton) {
         let delegate = UIApplication.shared.delegate as! AppDelegate
         delegate.eraserButtonSelected = true
@@ -22,14 +24,12 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        view.addSubview(task.view)
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
 }
 
