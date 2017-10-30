@@ -113,7 +113,6 @@ class TaskView: UIView {
 
     var vertexToStartWidth = Vertex(location: CGPoint(),
                                     thickness: CGFloat())
-    var strokes = Set<Stroke>()
     var currentStroke: Stroke? = nil
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
@@ -123,11 +122,15 @@ class TaskView: UIView {
     var numOfGridsHorizontally: Int
     var grids: [[Set<Stroke>]]
 
+    // MARK: Data
+
+    weak var task: Task!
+
     // MARK: CanvasView Initializer / Deinitializer
 
-    required init?(coder aDecoder: NSCoder) {
+    init() {
         // First initialize CanvasView's member variables
-        stripeLayer = StripeLayer(coder: aDecoder)!
+        stripeLayer = StripeLayer()
         stripeLayer.stripeColor = TaskView.kStripeColor
         stripeLayer.lineHeight = TaskView.kLineHeight
         canvasLayer = CanvasLayer()
@@ -136,7 +139,8 @@ class TaskView: UIView {
         grids = [[Set<Stroke>]]()
 
         // Initialize the UIView
-        super.init(coder: aDecoder)
+        let screenWidth = UIScreen.main.bounds.width
+        super.init(frame: CGRect(x: 0.0, y: 0.0, width: screenWidth, height: TaskView.kLineHeight))
         // Now, we have bounds/frame information
 
         // Bind the canvas layer to this view for drawing context
@@ -170,6 +174,10 @@ class TaskView: UIView {
         // Setup grids
         numOfGridsHorizontally = Int(bounds.width / TaskView.kLineHeight) + 1
         grids = [[Set<Stroke>](repeating: [], count: numOfGridsHorizontally)]
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     deinit {
@@ -257,7 +265,7 @@ class TaskView: UIView {
 
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
-            strokes.insert(currentStroke!)
+            task.strokes.insert(currentStroke!)
 
             // Add the stroke to the corresponding grids
             for v in currentStroke!.vertices {
@@ -355,7 +363,7 @@ class TaskView: UIView {
             let grid = grids[i][j]
             for s in grid {
                 if s.overlaps(with: v.location) {
-                    strokes.remove(s)
+                    task.strokes.remove(s)
                     for row in grids {
                         for var g in row {
                             g.remove(s)
@@ -371,7 +379,7 @@ class TaskView: UIView {
         vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
 
         // Calculate the minimum CGRect that bounds all the strokes
-        let strokesBounds = strokes.reduce(CGRect()) { $0.union($1.frame()) }
+        let strokesBounds = task.strokes.reduce(CGRect()) { $0.union($1.frame()) }
 
         // Calculate the new canvas size
         var newCanvasBounds = strokesBounds
@@ -394,7 +402,7 @@ class TaskView: UIView {
         // Redraw the strokes to a new image context
         UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
         UIColor.black.set()
-        for s in strokes {
+        for s in task.strokes {
             s.draw()
         }
         if let s = currentStroke {
