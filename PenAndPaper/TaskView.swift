@@ -86,6 +86,10 @@ class CanvasLayer: CALayer, CALayerDelegate {
     }
 }
 
+protocol TaskViewDelegate: class {
+    func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat)
+    func taskView(_ taskView: TaskView, commit height: CGFloat)
+}
 
 class TaskView: UIView {
 
@@ -100,6 +104,10 @@ class TaskView: UIView {
     static let kMinQuandrance: CGFloat = 0.003
     static let kGridSize = CGSize(width: kLineHeight, height: kLineHeight)
 
+    override var intrinsicContentSize: CGSize {
+        return bounds.size
+    }
+
     // MARK: CALayers
 
     var stripeLayer: StripeLayer
@@ -108,6 +116,7 @@ class TaskView: UIView {
     // MARK: States
 
     var touchIsAssociatedWithErasing = false
+    var resizingHappened = false
 
     // MARK: Drawing Information
 
@@ -125,6 +134,10 @@ class TaskView: UIView {
     // MARK: Data
 
     weak var task: Task!
+
+    // MARK: Delegate
+
+    weak var delegate: TaskViewDelegate?
 
     // MARK: CanvasView Initializer / Deinitializer
 
@@ -205,8 +218,17 @@ class TaskView: UIView {
     // MARK: Handle Touches
 
     func handleTouches(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // Exclude finger touches
+        guard touches.first!.type == .stylus else { return }
+
         // Exclude touches that move only in the 'force' dimension
         guard goodQuadrance(touch: touches.first!) else { return }
+
+        // Reset stroke related states
+        if touches.first!.phase == .began {
+            touchIsAssociatedWithErasing = eraserButtonSelected()
+        }
+        resizingHappened = false
 
         // Forward event to the current handler
         if touchIsAssociatedWithErasing {
@@ -252,6 +274,7 @@ class TaskView: UIView {
             }
 
             // Change the bounds of the view and sublayers
+            let oldSize = frame.size
             let expandedSize = CGSize(width: bounds.width,
                                  height: box!.maxY + TaskView.kMargin)
             frame.size = expandedSize
@@ -261,6 +284,10 @@ class TaskView: UIView {
             // Set needs display for stripe layer
             stripeLayer.setNeedsDisplay()
             stripeLayer.removeAllAnimations()
+
+            // Notify delegate about the resizing
+            delegate?.taskView(self, heightChangedFrom: oldSize.height, to: expandedSize.height)
+            resizingHappened = true
         }
 
         if t.phase == .cancelled || t.phase == .ended {
@@ -279,6 +306,11 @@ class TaskView: UIView {
 
             // Lose track of the stroke
             currentStroke = nil
+
+            // Notify delegate about the commiting the final size
+            if resizingHappened {
+                delegate?.taskView(self, commit: frame.size.height)
+            }
         } else {
             // Create a new image context from the old image
             UIGraphicsBeginImageContextWithOptions(canvas.size, false, 0.0)
@@ -414,6 +446,7 @@ class TaskView: UIView {
         // Shrink the size if needed
         if someStrokesErased {
             // Change the bounds of the view and sublayers
+            let oldSize = frame.size
             frame.size = newViewSize.size
             canvasLayer.frame.size = newViewSize.size
             stripeLayer.frame.size = newViewSize.size
@@ -423,13 +456,22 @@ class TaskView: UIView {
             canvasLayer.removeAllAnimations()
             stripeLayer.setNeedsDisplay()
             stripeLayer.removeAllAnimations()
+
+            // Notify the delegate about the resizing
+            delegate?.taskView(self, heightChangedFrom: oldSize.height, to: newViewSize.height)
+            resizingHappened = true
+        }
+
+        if t.phase == .ended || t.phase == .cancelled {
+            if resizingHappened {
+                delegate?.taskView(self, commit: frame.size.height)
+            }
         }
     }
 
     // MARK: Touch Began / Moved / Cancelled / Ended
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchIsAssociatedWithErasing = eraserButtonSelected()
         handleTouches(touches, with: event)
     }
 
