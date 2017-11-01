@@ -12,7 +12,8 @@ class TasksTableViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     
-    var tasks = [Task]()
+    var tasks = [UUID : Task]()
+    var orderOfTasks = [UUID]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,7 +34,8 @@ class TasksTableViewController: UIViewController {
     @IBAction func addButtonTapped() {
         let task = Task()
         task.view.delegate = self
-        tasks.insert(task, at: 0)
+        tasks[task.id] = task
+        orderOfTasks.insert(task.id, at: 0)
         tableView.beginUpdates()
         tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
         tableView.endUpdates()
@@ -52,14 +54,17 @@ extension TasksTableViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(
                 withIdentifier: "Cell", for: indexPath) as! TaskTableViewCell
-        cell.setTask(tasks[indexPath.row])
+        let taskId = orderOfTasks[indexPath.row]
+        cell.setTask(tasks[taskId]!)
         return cell
     }
 }
 
 extension TasksTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return tasks[indexPath.row].view.intrinsicContentSize.height
+        let taskId = orderOfTasks[indexPath.row]
+        let task = tasks[taskId]!
+        return task.view.intrinsicContentSize.height
     }
 }
 
