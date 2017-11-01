@@ -68,15 +68,14 @@ extension TasksTableViewController: TaskViewDelegate {
         let delta = newHeight - oldHeight
         var offsetCells = false
         UIView.animate(withDuration: 0.1) {
-            for (i, task) in self.tasks.enumerated() {
-                let cell = self.tableView.cellForRow(at: IndexPath(row: i, section: 0))
+            for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
                 if !offsetCells {
-                    if task.view === taskView {
+                    if cell.task!.view === taskView {
                         offsetCells = true
-                        cell!.frame.size.height += delta
+                        cell.frame.size.height += delta
                     }
                 } else {
-                    cell!.frame.origin.y += delta
+                    cell.frame.origin.y += delta
                 }
             }
         }
