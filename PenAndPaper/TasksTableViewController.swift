@@ -82,6 +82,10 @@ extension TasksTableViewController: UITableViewDelegate {
         let task = tasks[taskId]!
         return task.view.intrinsicContentSize.height
     }
+
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return CGFloat.leastNormalMagnitude
+    }
 }
 
 extension TasksTableViewController: TaskViewDelegate {
