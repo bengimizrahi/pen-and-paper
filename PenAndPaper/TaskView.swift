@@ -446,9 +446,9 @@ class TaskView: UIView {
         UIGraphicsEndImageContext()
 
         // Shrink the size if needed
-        if someStrokesErased {
+        let oldSize = frame.size
+        if someStrokesErased && oldSize != newViewSize.size {
             // Change the bounds of the view and sublayers
-            let oldSize = frame.size
             frame.size = newViewSize.size
             canvasLayer.frame.size = newViewSize.size
             stripeLayer.frame.size = newViewSize.size
