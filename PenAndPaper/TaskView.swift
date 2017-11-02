@@ -394,7 +394,7 @@ class TaskView: UIView {
             var strokesToMarkForErase = Set<Stroke>()
             for v in erasePath {
                 let (i, j) = v.grid(TaskView.kGridSize)
-                guard i < grids.count && j < numOfGridsHorizontally else { continue }
+                guard i >= 0 && i < grids.count && j < numOfGridsHorizontally else { continue }
 
                 let grid = grids[i][j]
                 for s in grid {
