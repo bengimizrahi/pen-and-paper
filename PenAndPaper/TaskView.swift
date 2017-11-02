@@ -116,13 +116,14 @@ class TaskView: UIView {
     // MARK: States
 
     var touchIsAssociatedWithErasing = false
-    var resizingHappened = false
+    var shouldCommitFinalHeight = false
 
     // MARK: Drawing Information
 
     var vertexToStartWidth = Vertex(location: CGPoint(),
                                     thickness: CGFloat())
     var currentStroke: Stroke? = nil
+    var strokesToErase = Set<Stroke>()
     var canvas = UIImage()
     var rectNeedsDisplay: CGRect? = nil
 
@@ -228,7 +229,7 @@ class TaskView: UIView {
         if touches.first!.phase == .began {
             touchIsAssociatedWithErasing = eraserButtonSelected()
         }
-        resizingHappened = false
+        shouldCommitFinalHeight = false
 
         // Forward event to the current handler
         if touchIsAssociatedWithErasing {
@@ -287,7 +288,7 @@ class TaskView: UIView {
 
             // Notify delegate about the resizing
             delegate?.taskView(self, heightChangedFrom: oldSize.height, to: expandedSize.height)
-            resizingHappened = true
+            shouldCommitFinalHeight = true
         }
 
         if t.phase == .cancelled || t.phase == .ended {
@@ -308,7 +309,7 @@ class TaskView: UIView {
             currentStroke = nil
 
             // Notify delegate about the commiting the final size
-            if resizingHappened {
+            if shouldCommitFinalHeight {
                 delegate?.taskView(self, commit: frame.size.height)
             }
         } else {
@@ -388,84 +389,112 @@ class TaskView: UIView {
         cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
                                               thickness: 0.0)) }
 
-        // Erase the overlapping strokes
-        var someStrokesErased = false
-        for v in erasePath {
-            let (i, j) = v.grid(TaskView.kGridSize)
-            guard i < grids.count && j < numOfGridsHorizontally else { continue }
+        if t.phase == .moved {
+            // Erase the overlapping strokes
+            var strokesToMarkForErase = Set<Stroke>()
+            for v in erasePath {
+                let (i, j) = v.grid(TaskView.kGridSize)
+                guard i < grids.count && j < numOfGridsHorizontally else { continue }
 
-            let grid = grids[i][j]
-            for s in grid {
-                if s.overlaps(with: v.location) {
-                    task.strokes.remove(s)
-                    for row in grids {
-                        for var g in row {
-                            g.remove(s)
+                let grid = grids[i][j]
+                for s in grid {
+                    if s.overlaps(with: v.location) {
+                        strokesToMarkForErase.insert(s)
+                        strokesToErase.insert(s)
+                        task.strokes.remove(s)
+                        for (i, row) in grids.enumerated() {
+                            for (j, g) in row.enumerated() {
+                                if g.contains(s) {
+                                    grids[i][j].remove(s)
+                                }
+                            }
                         }
                     }
-                    someStrokesErased = true
                 }
+                for r in grids {
+                    for g in r {
+                        print(g.count, separator: "", terminator: "")
+                    }
+                    print()
+                }
+                print()
             }
-        }
 
-        // Set the last touch location as the starting vertex for the subsequent
-        // touch event.
-        vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
+            // Set the last touch location as the starting vertex for the subsequent
+            // touch event.
+            vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
 
-        // Calculate the minimum CGRect that bounds all the strokes
-        let strokesBounds = task.strokes.reduce(CGRect()) { $0.union($1.frame()) }
+            // Create a new image context from the old image
+            UIGraphicsBeginImageContextWithOptions(canvas.size, false, 0.0)
+            canvas.draw(at: CGPoint())
 
-        // Calculate the new canvas size
-        var newCanvasBounds = strokesBounds
-        newCanvasBounds.size.width = bounds.width
-        let n = CGFloat(Int(newCanvasBounds.height / TaskView.kLineHeight))
-        newCanvasBounds.size.height = (n + 1) * TaskView.kLineHeight
+            // Draw the erased touches with red
+            UIColor.red.setStroke()
+            for s in strokesToMarkForErase {
+                s.draw()
+            }
 
-        // Remove unused grids
-        let heightDiff = canvas.size.height - newCanvasBounds.height
-        let numOfExcessLines = Int(heightDiff / TaskView.kLineHeight)
-        for _ in 0 ..< numOfExcessLines {
-            grids.removeLast()
-        }
+            // Get the final image
+            canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
 
-        // Calculate the new view size
-        var newViewSize = strokesBounds
-        newViewSize.size.width = bounds.width
-        newViewSize.size.height = max(TaskView.kLineHeight, strokesBounds.maxY + TaskView.kMargin)
+            // Set needs display for the corresponding rect
+            rectNeedsDisplay = strokesToErase.reduce(CGRect()) { $0.union($1.frame()) }
+            canvasLayer.setNeedsDisplay(rectNeedsDisplay!)
 
-        // Redraw the strokes to a new image context
-        UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
-        UIColor.black.set()
-        for s in task.strokes {
-            s.draw()
-        }
-        if let s = currentStroke {
-            s.draw()
-        }
-        canvas = UIGraphicsGetImageFromCurrentImageContext()!
-        UIGraphicsEndImageContext()
+        } else if t.phase == .ended || t.phase == .cancelled {
+            guard !strokesToErase.isEmpty else { return }
 
-        // Shrink the size if needed
-        let oldSize = frame.size
-        if someStrokesErased && oldSize != newViewSize.size {
-            // Change the bounds of the view and sublayers
-            frame.size = newViewSize.size
-            canvasLayer.frame.size = newViewSize.size
-            stripeLayer.frame.size = newViewSize.size
+            // Calculate the minimum CGRect that bounds all the strokes
+            let strokesBounds = task.strokes.reduce(CGRect()) { $0.union($1.frame()) }
 
-            // Set needs display for the sublayers
-            canvasLayer.setNeedsDisplay()
-            canvasLayer.removeAllAnimations()
-            stripeLayer.setNeedsDisplay()
-            stripeLayer.removeAllAnimations()
+            // Calculate the new canvas size
+            var newCanvasBounds = strokesBounds
+            newCanvasBounds.size.width = bounds.width
+            let n = CGFloat(Int(newCanvasBounds.height / TaskView.kLineHeight))
+            newCanvasBounds.size.height = (n + 1) * TaskView.kLineHeight
 
-            // Notify the delegate about the resizing
-            delegate?.taskView(self, heightChangedFrom: oldSize.height, to: newViewSize.height)
-            resizingHappened = true
-        }
+            // Remove unused grids
+            let heightDiff = canvas.size.height - newCanvasBounds.height
+            let numOfExcessLines = Int(heightDiff / TaskView.kLineHeight)
+            for _ in 0 ..< numOfExcessLines {
+                grids.removeLast()
+            }
 
-        if t.phase == .ended || t.phase == .cancelled {
-            if resizingHappened {
+            // Calculate the new view size
+            var newViewSize = strokesBounds
+            newViewSize.size.width = bounds.width
+            newViewSize.size.height = max(TaskView.kLineHeight, strokesBounds.maxY + TaskView.kMargin)
+
+            // Redraw the strokes to a new image context
+            UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
+            UIColor.black.set()
+            for s in task.strokes {
+                s.draw()
+            }
+            if let s = currentStroke {
+                s.draw()
+            }
+            canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+
+            strokesToErase.removeAll(keepingCapacity: true)
+
+            // Shrink the size if needed
+            let oldSize = frame.size
+            if oldSize != newViewSize.size {
+                // Change the bounds of the view and sublayers
+                frame.size = newViewSize.size
+                canvasLayer.frame.size = newViewSize.size
+                stripeLayer.frame.size = newViewSize.size
+
+                // Set needs display for the sublayers
+                canvasLayer.setNeedsDisplay()
+                canvasLayer.removeAllAnimations()
+                stripeLayer.setNeedsDisplay()
+                stripeLayer.removeAllAnimations()
+
+                // Notify the delegate about the resizing
                 delegate?.taskView(self, commit: frame.size.height)
             }
         }
