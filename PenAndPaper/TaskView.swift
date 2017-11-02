@@ -299,7 +299,7 @@ class TaskView: UIView {
                 let (i, j) = v.grid(TaskView.kGridSize)
 
                 // Check if vertex is outside of the view bounds
-                if j < numOfGridsHorizontally {
+                if j < numOfGridsHorizontally && (i >= 0 && i < grids.count) {
                     grids[i][j].insert(currentStroke!)
                 }
             }
