@@ -11,6 +11,7 @@ import UIKit
 class TasksTableViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
+    weak var eraserButton: UIButton!
     
     var tasks = [UUID : Task]()
     var orderOfTasks = [UUID]()
@@ -25,6 +26,14 @@ class TasksTableViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = TaskView.kLineHeight
+
+        let eraserButton = UIButton(type: .custom)
+        eraserButton.setTitle("Eraser", for: .normal)
+        eraserButton.setTitleColor(UIColor.red, for: .normal)
+        eraserButton.addTarget(self, action: #selector(eraserButtonTapped), for: [.touchUpInside])
+        let eraserBarButtonItem = UIBarButtonItem(customView: eraserButton)
+        navigationItem.rightBarButtonItems?.append(eraserBarButtonItem)
+        self.eraserButton = eraserButton
     }
 
     override func didReceiveMemoryWarning() {
@@ -39,6 +48,13 @@ class TasksTableViewController: UIViewController {
         tableView.beginUpdates()
         tableView.insertRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
         tableView.endUpdates()
+    }
+
+    @objc func eraserButtonTapped() {
+        let delegate = UIApplication.shared.delegate as! AppDelegate
+        delegate.eraserButtonSelected = !delegate.eraserButtonSelected
+        let backgroundColor = delegate.eraserButtonSelected ? UIColor.lightGray : UIColor.clear
+        eraserButton.backgroundColor = backgroundColor
     }
 }
 
