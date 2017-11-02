@@ -320,6 +320,8 @@ class TaskView: UIView {
             var maxThicknessNoted: CGFloat = 0.0
             UIColor.black.set()
             var path = UIBezierPath()
+            assert(event != nil)
+            assert(event!.coalescedTouches(for: t) != nil)
             var it = event!.coalescedTouches(for: t)!.makeIterator()
 
             if t.phase == .began {
