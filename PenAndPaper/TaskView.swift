@@ -411,13 +411,6 @@ class TaskView: UIView {
                         }
                     }
                 }
-                for r in grids {
-                    for g in r {
-                        print(g.count, separator: "", terminator: "")
-                    }
-                    print()
-                }
-                print()
             }
 
             // Set the last touch location as the starting vertex for the subsequent
