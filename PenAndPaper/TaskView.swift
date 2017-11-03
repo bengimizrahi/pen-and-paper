@@ -432,7 +432,7 @@ class TaskView: UIView {
             UIGraphicsEndImageContext()
 
             // Set needs display for the corresponding rect
-            rectNeedsDisplay = strokesToErase.reduce(CGRect()) { $0.union($1.frame()) }
+            rectNeedsDisplay = strokesToMarkForErase.reduce(CGRect()) { $0.union($1.frame()) }
             canvasLayer.setNeedsDisplay(rectNeedsDisplay!)
 
         } else if t.phase == .ended || t.phase == .cancelled {
@@ -481,15 +481,15 @@ class TaskView: UIView {
                 canvasLayer.frame.size = newViewSize.size
                 stripeLayer.frame.size = newViewSize.size
 
-                // Set needs display for the sublayers
-                canvasLayer.setNeedsDisplay()
-                canvasLayer.removeAllAnimations()
-                stripeLayer.setNeedsDisplay()
-                stripeLayer.removeAllAnimations()
-
                 // Notify the delegate about the resizing
                 delegate?.taskView(self, commit: frame.size.height)
             }
+
+            // Set needs display for the sublayers
+            canvasLayer.setNeedsDisplay()
+            canvasLayer.removeAllAnimations()
+            stripeLayer.setNeedsDisplay()
+            stripeLayer.removeAllAnimations()
         }
     }
 
