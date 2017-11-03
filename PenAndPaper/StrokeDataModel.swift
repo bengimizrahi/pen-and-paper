@@ -64,12 +64,19 @@ class Stroke {
     }
 
     func frame() -> CGRect {
+        let vertexFrame = { (v: Vertex) -> CGRect in
+            let r = CGRect(origin: v.location,
+                           size:CGSize(width: self.maxThickness,
+                                       height: self.maxThickness))
+            r.applying(CGAffineTransform(translationX: -self.maxThickness / 2.0,
+                                         y: -self.maxThickness / 2.0))
+            return r
+        }
         if vertices.count == 1 {
-            return CGRect(origin: vertices.first!.location,
-                          size:CGSize(width: maxThickness, height: maxThickness))
+            return vertexFrame(vertices.first!)
         } else {
-            let box = CGRect(origin: vertices.first!.location, size: CGSize())
-            return vertices.reduce(box) { $0.union(CGRect(origin: $1.location, size: CGSize())) }
+            let box = vertexFrame(vertices.first!)
+            return vertices.reduce(box) { $0.union(vertexFrame($1)) }
         }
     }
 }
