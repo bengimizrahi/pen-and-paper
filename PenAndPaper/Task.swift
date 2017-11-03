@@ -10,6 +10,8 @@ import UIKit
 
 class Task {
 
+    let id: UUID
+
     // MARK: Drawing Information
 
     var strokes: Set<Stroke>
@@ -19,6 +21,7 @@ class Task {
     var view: TaskView
 
     init() {
+        id = UUID()
         strokes = Set<Stroke>()
         view = TaskView()
         view.task = self
