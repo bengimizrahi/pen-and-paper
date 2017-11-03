@@ -12,7 +12,7 @@ struct Vertex {
     var location: CGPoint
     var thickness: CGFloat
 
-    func grid(_ gridSize: CGSize) -> (Int, Int) {
+    func gridIndex(_ gridSize: CGSize) -> (Int, Int) {
         let i = Int(location.y / gridSize.height)
         let j = Int(location.x / gridSize.width)
         return (i, j)
