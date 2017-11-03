@@ -30,6 +30,28 @@ extension Stroke {
     }
 }
 
+class PaperLayer: CAShapeLayer {
+
+    func setupShadow() {
+        shadowOffset = CGSize()
+        backgroundColor = UIColor.white.cgColor
+    }
+
+    override init() {
+        super.init()
+        setupShadow()
+    }
+
+    override init(layer: Any) {
+        super.init(layer: layer)
+        setupShadow()
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
 class StripeLayer: CATiledLayer, CALayerDelegate {
 
     var stripeColor: UIColor? = nil
@@ -110,6 +132,7 @@ class TaskView: UIView {
 
     // MARK: CALayers
 
+    var paperLayer: PaperLayer
     var stripeLayer: StripeLayer
     var canvasLayer: CanvasLayer
 
@@ -144,6 +167,7 @@ class TaskView: UIView {
 
     init() {
         // First initialize CanvasView's member variables
+        paperLayer = PaperLayer()
         stripeLayer = StripeLayer()
         stripeLayer.stripeColor = TaskView.kStripeColor
         stripeLayer.lineHeight = TaskView.kLineHeight
@@ -168,6 +192,7 @@ class TaskView: UIView {
 
         // Set the frames of the sublayers. This will also set up the
         // tile size of the StripeLayer.
+        paperLayer.frame = bounds
         stripeLayer.frame = bounds
         canvasLayer.frame = bounds
 
@@ -176,6 +201,7 @@ class TaskView: UIView {
         canvasLayer.delegate = canvasLayer
 
         // Add the layers as sublayers
+        layer.addSublayer(paperLayer)
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
 
@@ -279,10 +305,13 @@ class TaskView: UIView {
             let expandedSize = CGSize(width: bounds.width,
                                  height: box!.maxY + TaskView.kMargin)
             frame.size = expandedSize
+            paperLayer.frame.size = expandedSize
             canvasLayer.frame.size = expandedSize
             stripeLayer.frame.size = expandedSize
 
             // Set needs display for stripe layer
+            paperLayer.setNeedsDisplay()
+            paperLayer.removeAllAnimations()
             stripeLayer.setNeedsDisplay()
             stripeLayer.removeAllAnimations()
 
@@ -478,6 +507,7 @@ class TaskView: UIView {
             if oldSize != newViewSize.size {
                 // Change the bounds of the view and sublayers
                 frame.size = newViewSize.size
+                paperLayer.frame.size = newViewSize.size
                 canvasLayer.frame.size = newViewSize.size
                 stripeLayer.frame.size = newViewSize.size
 
@@ -486,6 +516,8 @@ class TaskView: UIView {
             }
 
             // Set needs display for the sublayers
+            paperLayer.setNeedsDisplay()
+            paperLayer.removeAllAnimations()
             canvasLayer.setNeedsDisplay()
             canvasLayer.removeAllAnimations()
             stripeLayer.setNeedsDisplay()
