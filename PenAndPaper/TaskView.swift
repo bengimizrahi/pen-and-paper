@@ -288,7 +288,7 @@ class TaskView: UIView {
             if newCanvasSize.height > canvas.size.height {
                 // Add new grids of Set<Stroke> for expanded region
                 let heightDiff = newCanvasSize.height - canvas.size.height
-                let numOfNewLines = Int(heightDiff / TaskView.kLineHeight)
+                let numOfNewLines = Int(heightDiff) / Int(TaskView.kLineHeight)
                 for _ in 0 ..< numOfNewLines {
                     grids.append([Set<Stroke>](repeating: [], count: numOfGridsHorizontally))
                 }
