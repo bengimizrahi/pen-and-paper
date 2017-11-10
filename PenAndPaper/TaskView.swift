@@ -295,7 +295,7 @@ class TaskView: UIView {
 
                 // Draw the old image onto the new-sized image context
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
-                canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
+                canvas.draw(at: CGPoint())
                 canvas = UIGraphicsGetImageFromCurrentImageContext()!
                 UIGraphicsEndImageContext()
             }
