@@ -21,8 +21,8 @@ class TasksTableViewController: UIViewController {
         
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.panGestureRecognizer.requiresExclusiveTouchType = true
-        tableView.panGestureRecognizer.allowedTouchTypes = [NSNumber(value: UITouchType.direct.rawValue)]
+        tableView.panGestureRecognizer.allowedTouchTypes =
+                [NSNumber(value: UITouchType.direct.rawValue)]
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = TaskView.kLineHeight
