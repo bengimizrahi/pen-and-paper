@@ -285,17 +285,17 @@ class TaskView: UIView {
                 sz.height = newHeight
                 return sz
             }()
-            if newCanvasSize != canvas.size {
+            if newCanvasSize.height > canvas.size.height {
                 // Add new grids of Set<Stroke> for expanded region
                 let heightDiff = newCanvasSize.height - canvas.size.height
-                let numOfNewLines = Int(heightDiff / TaskView.kLineHeight)
+                let numOfNewLines = Int(heightDiff) / Int(TaskView.kLineHeight)
                 for _ in 0 ..< numOfNewLines {
                     grids.append([Set<Stroke>](repeating: [], count: numOfGridsHorizontally))
                 }
 
                 // Draw the old image onto the new-sized image context
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
-                canvas.draw(in: CGRect(origin: CGPoint(), size: canvas.size))
+                canvas.draw(at: CGPoint())
                 canvas = UIGraphicsGetImageFromCurrentImageContext()!
                 UIGraphicsEndImageContext()
             }
@@ -328,7 +328,7 @@ class TaskView: UIView {
             for v in currentStroke!.vertices {
                 let (i, j) = v.gridIndex(TaskView.kGridSize)
 
-                // Check if vertex is outside of the view bounds
+                // Check if grid location is valid
                 if j < numOfGridsHorizontally && (i >= 0 && i < grids.count) {
                     grids[i][j].insert(currentStroke!)
                 }
