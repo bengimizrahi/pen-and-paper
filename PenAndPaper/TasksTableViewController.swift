@@ -26,6 +26,7 @@ class TasksTableViewController: UIViewController {
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = TaskView.kLineHeight
+        tableView.allowsSelection = true
 
         let eraserButton = UIButton(type: .custom)
         eraserButton.setTitle("Eraser", for: .normal)
