@@ -22,8 +22,11 @@ class TasksTableViewController: UIViewController {
         
         tableView.dataSource = self
         tableView.delegate = self
+
+        // Disable scrolling the table view with a stylus
         tableView.panGestureRecognizer.allowedTouchTypes =
                 [NSNumber(value: UITouchType.direct.rawValue)]
+
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = TaskView.kLineHeight
