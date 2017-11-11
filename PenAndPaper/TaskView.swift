@@ -413,8 +413,8 @@ class TaskView: UIView {
     func handleTouchesForErasing(_ touches: Set<UITouch>, with event: UIEvent?) {
         // Convert coalesced touches into vertices
         let t = touches.first!
-        var erasePath = (t.phase == .began) ? [] : [vertexToStartWidth]
         let cts = event!.coalescedTouches(for: t)!
+        var erasePath = [Vertex]()
         cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
                                               thickness: 0.0)) }
 
