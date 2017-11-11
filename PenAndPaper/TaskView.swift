@@ -32,6 +32,13 @@ extension Stroke {
 
 class PaperLayer: CAShapeLayer {
 
+    var liftCoefficient: CGFloat = 0.0 {
+        didSet {
+            shadowRadius = liftCoefficient
+            shadowOpacity = liftCoefficient > 0.0 ? 0.8 : 0.0
+        }
+    }
+
     func setupShadow() {
         shadowOffset = CGSize()
         backgroundColor = UIColor.white.cgColor
@@ -140,6 +147,26 @@ class TaskView: UIView {
 
     var touchIsAssociatedWithErasing = false
     var shouldCommitFinalHeight = false
+
+    enum ControlState {
+        case none
+        case selected
+        case beingDragged
+    }
+
+    var controlState: ControlState = .none {
+        didSet {
+            let liftCoeff: CGFloat
+            switch controlState {
+                case .none:
+                    liftCoeff = 0.0
+                case .selected:
+                    liftCoeff = 3.0
+                case .beingDragged: liftCoeff = 10.0
+            }
+            paperLayer.liftCoefficient = liftCoeff
+        }
+    }
 
     // MARK: Drawing Information
 
