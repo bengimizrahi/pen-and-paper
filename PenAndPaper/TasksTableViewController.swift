@@ -15,17 +15,19 @@ class TasksTableViewController: UIViewController {
     
     var tasks = [UUID : Task]()
     var orderOfTasks = [UUID]()
+    var selectedTask: Task? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         tableView.dataSource = self
         tableView.delegate = self
-        tableView.panGestureRecognizer.requiresExclusiveTouchType = true
-        tableView.panGestureRecognizer.allowedTouchTypes = [NSNumber(value: UITouchType.direct.rawValue)]
+        tableView.panGestureRecognizer.allowedTouchTypes =
+                [NSNumber(value: UITouchType.direct.rawValue)]
         tableView.separatorStyle = .none
         tableView.rowHeight = UITableViewAutomaticDimension
         tableView.estimatedRowHeight = TaskView.kLineHeight
+        tableView.allowsSelection = true
 
         let eraserButton = UIButton(type: .custom)
         eraserButton.setTitle("Eraser", for: .normal)
@@ -85,6 +87,13 @@ extension TasksTableViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return CGFloat.leastNormalMagnitude
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath) as! TaskTableViewCell
+        selectedTask?.view.controlState = .none
+        cell.task!.view.controlState = .selected
+        selectedTask = cell.task!
     }
 }
 

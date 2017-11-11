@@ -32,6 +32,13 @@ extension Stroke {
 
 class PaperLayer: CAShapeLayer {
 
+    var liftCoefficient: CGFloat = 0.0 {
+        didSet {
+            shadowRadius = liftCoefficient
+            shadowOpacity = liftCoefficient > 0.0 ? 0.8 : 0.0
+        }
+    }
+
     func setupShadow() {
         shadowOffset = CGSize()
         backgroundColor = UIColor.white.cgColor
@@ -140,6 +147,26 @@ class TaskView: UIView {
 
     var touchIsAssociatedWithErasing = false
     var shouldCommitFinalHeight = false
+
+    enum ControlState {
+        case none
+        case selected
+        case beingDragged
+    }
+
+    var controlState: ControlState = .none {
+        didSet {
+            let liftCoeff: CGFloat
+            switch controlState {
+                case .none:
+                    liftCoeff = 0.0
+                case .selected:
+                    liftCoeff = 3.0
+                case .beingDragged: liftCoeff = 10.0
+            }
+            paperLayer.liftCoefficient = liftCoeff
+        }
+    }
 
     // MARK: Drawing Information
 
@@ -528,18 +555,42 @@ class TaskView: UIView {
     // MARK: Touch Began / Moved / Cancelled / Ended
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected && touches.first!.type == .stylus else {
+            super.touchesBegan(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesMoved(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesCancelled(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesEnded(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 }
