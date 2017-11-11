@@ -528,22 +528,42 @@ class TaskView: UIView {
     // MARK: Touch Began / Moved / Cancelled / Ended
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected && touches.first!.type == .stylus else {
+            super.touchesBegan(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesMoved(touches, with: event)
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesMoved(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesCancelled(touches, with: event)
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesCancelled(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
+        // If this task view is not selected, pass the both finger & styles
+        // touches to super. Pass all finger touches to super unconditionally
+        guard controlState == .selected  && touches.first!.type == .stylus else {
+            super.touchesEnded(touches, with: event)
+            return
+        }
         handleTouches(touches, with: event)
     }
 }
