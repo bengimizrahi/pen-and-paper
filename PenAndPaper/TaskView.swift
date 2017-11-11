@@ -413,8 +413,8 @@ class TaskView: UIView {
     func handleTouchesForErasing(_ touches: Set<UITouch>, with event: UIEvent?) {
         // Convert coalesced touches into vertices
         let t = touches.first!
-        var erasePath = (t.phase == .began) ? [] : [vertexToStartWidth]
         let cts = event!.coalescedTouches(for: t)!
+        var erasePath = [Vertex]()
         cts.forEach { erasePath.append(Vertex(location: $0.preciseLocation(in: self),
                                               thickness: 0.0)) }
 
@@ -541,5 +541,15 @@ class TaskView: UIView {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         handleTouches(touches, with: event)
+    }
+}
+
+func debugPrintGridContents(grids : inout [[Set<Stroke>]], markers: [(Int, Int)]) {
+    for (i, r) in grids.enumerated() {
+        for (j, g) in r.enumerated() {
+            let mark = markers.first { $0 == (i, j) } != nil
+            print(!mark ? g.count : "X", separator: "", terminator: "")
+        }
+        print()
     }
 }
