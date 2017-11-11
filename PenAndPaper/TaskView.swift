@@ -543,3 +543,13 @@ class TaskView: UIView {
         handleTouches(touches, with: event)
     }
 }
+
+func debugPrintGridContents(grids : inout [[Set<Stroke>]], markers: [(Int, Int)]) {
+    for (i, r) in grids.enumerated() {
+        for (j, g) in r.enumerated() {
+            let mark = markers.first { $0 == (i, j) } != nil
+            print(!mark ? g.count : "X", separator: "", terminator: "")
+        }
+        print()
+    }
+}
