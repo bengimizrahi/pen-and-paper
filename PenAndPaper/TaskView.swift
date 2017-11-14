@@ -161,7 +161,7 @@ class TaskView: UIView {
                 case .none:
                     liftCoeff = 0.0
                 case .selected:
-                    liftCoeff = 3.0
+                    liftCoeff = 2.0
                 case .beingDragged: liftCoeff = 10.0
             }
             paperLayer.liftCoefficient = liftCoeff
