@@ -16,7 +16,11 @@ class TasksTableViewController: UIViewController {
     var tasks = [UUID : Task]()
     var orderOfTasks = [UUID]()
     var selectedTask: Task? = nil
-    
+    var selectedIndexPath: IndexPath? = nil
+    var freeFloatingCell = TaskTableViewCell(style: .default,
+                                             reuseIdentifier: "TaskTableViewCell")
+    var reloadingDeselectedCell = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -74,15 +78,23 @@ extension TasksTableViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(
-                withIdentifier: "Cell", for: indexPath) as! TaskTableViewCell
+                withIdentifier: "TaskTableViewCell", for: indexPath) as! TaskTableViewCell
         let taskId = orderOfTasks[indexPath.row]
-        cell.setTask(tasks[taskId]!)
+        if let selIdxPath = selectedIndexPath, indexPath == selIdxPath && !reloadingDeselectedCell {
+            cell.clearTask()
+            //cell.isHidden = true
+        } else {
+            cell.setTask(tasks[taskId]!)
+        }
+
+        cell.tag = taskId.hashValue
         return cell
     }
 }
 
 extension TasksTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        print("tableView(_ tableView: ..., heightForRowAt indexPath: \(indexPath))")
         let taskId = orderOfTasks[indexPath.row]
         let task = tasks[taskId]!
         return task.view.intrinsicContentSize.height
@@ -93,32 +105,45 @@ extension TasksTableViewController: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("tableView(_ tableView: ..., didSelectRowAt indexPath: \(indexPath))")
         let cell = tableView.cellForRow(at: indexPath) as! TaskTableViewCell
-        selectedTask?.view.controlState = .none
-        cell.task!.view.controlState = .selected
+
+        // No-op if we are selecting an already selected cell
+        guard indexPath != selectedIndexPath else { return }
+
+        if let selectedTask = selectedTask {
+            // Remove the previously selected task from the free floating cell
+            selectedTask.view.removeFromSuperview()
+
+            // Remove the free floating cell from the table view
+            freeFloatingCell.removeFromSuperview()
+
+            // Turn off edit mode for the previously selected task view
+            selectedTask.view.controlState = .none
+
+            // Put the previously selected task view back to its cell
+            tableView.reloadData()
+        }
+
         selectedTask = cell.task!
+        selectedIndexPath = indexPath
+
+        selectedTask!.view.removeFromSuperview()
+        freeFloatingCell.setTask(selectedTask!)
+
+        selectedTask!.view.controlState = .selected
+
+        tableView.addSubview(freeFloatingCell)
+        freeFloatingCell.frame = cell.frame
+        freeFloatingCell.tag = -1
     }
 }
 
 extension TasksTableViewController: TaskViewDelegate {
     func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat) {
-        let delta = newHeight - oldHeight
-        var offsetCells = false
-        UIView.animate(withDuration: 0.1) {
-            for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
-                if !offsetCells {
-                    if cell.task!.view === taskView {
-                        offsetCells = true
-                        cell.frame.size.height += delta
-                    }
-                } else {
-                    cell.frame.origin.y += delta
-                }
-            }
-        }
+        freeFloatingCell.frame.size = taskView.intrinsicContentSize
     }
 
     func taskView(_ taskView: TaskView, commit height: CGFloat) {
-        tableView.reloadData()
     }
 }
