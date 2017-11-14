@@ -27,3 +27,13 @@ class Task {
         view.task = self
     }
 }
+
+extension Task {
+    static func ==(lhs: Task, rhs: Task) -> Bool {
+        return lhs.id == rhs.id
+    }
+
+    static func !=(lhs: Task, rhs: Task) -> Bool {
+        return lhs.id != rhs.id
+    }
+}
