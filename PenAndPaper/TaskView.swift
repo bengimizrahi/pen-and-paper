@@ -254,8 +254,8 @@ class TaskView: UIView {
         // Reset stroke related states
         if touches.first!.phase == .began {
             touchIsAssociatedWithErasing = eraserButtonSelected()
+            shouldCommitFinalHeight = false
         }
-        shouldCommitFinalHeight = false
 
         // Forward event to the current handler
         if touchIsAssociatedWithErasing {
