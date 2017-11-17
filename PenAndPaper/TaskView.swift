@@ -156,11 +156,13 @@ class TaskView: UIView {
             frame = CGRect(origin: CGPoint(), size: self.task!.size)
             paperLayer.frame = bounds
             paperLayer.removeAllAnimations()
+            paperLayer.setNeedsDisplay()
             stripeLayer.frame = bounds
             stripeLayer.removeAllAnimations()
+            stripeLayer.setNeedsDisplay()
             canvasLayer.frame = bounds
             canvasLayer.removeAllAnimations()
-            setNeedsDisplay()
+            canvasLayer.setNeedsDisplay()
         }
     }
 
