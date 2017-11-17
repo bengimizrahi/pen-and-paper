@@ -91,13 +91,13 @@ class CanvasLayer: CALayer, CALayerDelegate {
         // Obtain the rect where the display will happen
         let rect = ctx.boundingBoxOfClipPath
 
-        let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.task.canvas.size)
+        let canvasBounds = CGRect(origin: CGPoint(), size: parentView!.task!.canvas.size)
         let rectToPaint = canvasBounds.intersection(rect)
         let rectToPaintInPixels = rectToPaint.applying(
             CGAffineTransform(scaleX: contentsScale,
                               y: contentsScale))
 
-        if let subCgImage = parentView!.task.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
+        if let subCgImage = parentView!.task!.canvas.cgImage!.cropping(to: rectToPaintInPixels) {
             let subimage = UIImage(cgImage: subCgImage)
             subimage.draw(in: rectToPaint)
         }
@@ -151,9 +151,9 @@ class TaskView: UIView {
 
     // MARK: Data
 
-    var task: Task {
+    var task: Task? {
         didSet {
-            frame = CGRect(origin: CGPoint(), size: self.task.size)
+            frame = CGRect(origin: CGPoint(), size: self.task!.size)
             paperLayer.frame = bounds
             paperLayer.removeAllAnimations()
             stripeLayer.frame = bounds
@@ -170,7 +170,7 @@ class TaskView: UIView {
 
     // MARK: CanvasView Initializer / Deinitializer
 
-    init(task: Task) {
+    required init?(coder aDecoder: NSCoder) {
         // First initialize CanvasView's member variables
         paperLayer = PaperLayer()
         stripeLayer = StripeLayer()
@@ -178,10 +178,8 @@ class TaskView: UIView {
         stripeLayer.lineHeight = TaskView.kLineHeight
         canvasLayer = CanvasLayer()
 
-        self.task = task
-
         // Initialize the UIView
-        super.init(frame: CGRect(origin: CGPoint(), size: self.task.size))
+        super.init(coder: aDecoder)
         // Now, we have bounds/frame information
 
         // Bind the canvas layer to this view for drawing context
@@ -193,12 +191,6 @@ class TaskView: UIView {
         canvasLayer.contentsScale = scale
         canvasLayer.contentsGravity = kCAGravityBottom
 
-        // Set the frames of the sublayers. This will also set up the
-        // tile size of the StripeLayer.
-        paperLayer.frame = bounds
-        stripeLayer.frame = bounds
-        canvasLayer.frame = bounds
-
         // Set up delegate of the layers as themselves
         stripeLayer.delegate = stripeLayer
         canvasLayer.delegate = canvasLayer
@@ -207,10 +199,6 @@ class TaskView: UIView {
         layer.addSublayer(paperLayer)
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
-    }
-
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
     deinit {
@@ -272,24 +260,24 @@ class TaskView: UIView {
         let expansionTriggeringBoundary = bounds.height - TaskView.kMargin
         if box!.maxY >= expansionTriggeringBoundary {
             let newCanvasSize = { () -> CGSize in
-                var sz = self.task.canvas.size
+                var sz = self.task!.canvas.size
                 let n = CGFloat(Int(box!.maxY / TaskView.kLineHeight))
                 let newHeight = (n + 1) * TaskView.kLineHeight
                 sz.height = newHeight
                 return sz
             }()
-            if newCanvasSize.height > task.canvas.size.height {
+            if newCanvasSize.height > task!.canvas.size.height {
                 // Add new grids of Set<Stroke> for expanded region
-                let heightDiff = newCanvasSize.height - task.canvas.size.height
+                let heightDiff = newCanvasSize.height - task!.canvas.size.height
                 let numOfNewLines = Int(heightDiff) / Int(TaskView.kLineHeight)
                 for _ in 0 ..< numOfNewLines {
-                    task.grids.append([Set<Stroke>](repeating: [], count: task.numOfGridsHorizontally))
+                    task!.grids.append([Set<Stroke>](repeating: [], count: task!.numOfGridsHorizontally))
                 }
 
                 // Draw the old image onto the new-sized image context
                 UIGraphicsBeginImageContextWithOptions(newCanvasSize, false, 0.0)
-                task.canvas.draw(at: CGPoint())
-                task.canvas = UIGraphicsGetImageFromCurrentImageContext()!
+                task!.canvas.draw(at: CGPoint())
+                task!.canvas = UIGraphicsGetImageFromCurrentImageContext()!
                 UIGraphicsEndImageContext()
             }
 
@@ -315,15 +303,15 @@ class TaskView: UIView {
 
         if t.phase == .cancelled || t.phase == .ended {
             // Collect the stroke
-            task.strokes.insert(currentStroke!)
+            task!.strokes.insert(currentStroke!)
 
             // Add the stroke to the corresponding grids
             for v in currentStroke!.vertices {
                 let (i, j) = v.gridIndex(TaskView.kGridSize)
 
                 // Check if grid location is valid
-                if j < task.numOfGridsHorizontally && (i >= 0 && i < task.grids.count) {
-                    task.grids[i][j].insert(currentStroke!)
+                if j < task!.numOfGridsHorizontally && (i >= 0 && i < task!.grids.count) {
+                    task!.grids[i][j].insert(currentStroke!)
                 }
             }
 
@@ -336,8 +324,8 @@ class TaskView: UIView {
             }
         } else {
             // Create a new image context from the old image
-            UIGraphicsBeginImageContextWithOptions(task.canvas.size, false, 0.0)
-            task.canvas.draw(at: CGPoint())
+            UIGraphicsBeginImageContextWithOptions(task!.canvas.size, false, 0.0)
+            task!.canvas.draw(at: CGPoint())
 
             // Draw the touches
             var maxThicknessNoted: CGFloat = 0.0
@@ -395,7 +383,7 @@ class TaskView: UIView {
                     insetDirtyRect : rectNeedsDisplay!.union(insetDirtyRect)
 
             // Get the final image
-            task.canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            task!.canvas = UIGraphicsGetImageFromCurrentImageContext()!
             UIGraphicsEndImageContext()
 
             // Set needs display for the corresponding rect
@@ -416,18 +404,18 @@ class TaskView: UIView {
             var strokesToMarkForErase = Set<Stroke>()
             for v in erasePath {
                 let (i, j) = v.gridIndex(TaskView.kGridSize)
-                guard i >= 0 && i < task.grids.count && j < task.numOfGridsHorizontally else { continue }
+                guard i >= 0 && i < task!.grids.count && j < task!.numOfGridsHorizontally else { continue }
 
-                let grid = task.grids[i][j]
+                let grid = task!.grids[i][j]
                 for s in grid {
                     if s.overlaps(with: v.location) {
                         strokesToMarkForErase.insert(s)
                         strokesToErase.insert(s)
-                        task.strokes.remove(s)
-                        for (i, row) in task.grids.enumerated() {
+                        task!.strokes.remove(s)
+                        for (i, row) in task!.grids.enumerated() {
                             for (j, g) in row.enumerated() {
                                 if g.contains(s) {
-                                    task.grids[i][j].remove(s)
+                                    task!.grids[i][j].remove(s)
                                 }
                             }
                         }
@@ -440,8 +428,8 @@ class TaskView: UIView {
             vertexToStartWidth = Vertex(location: t.preciseLocation(in: self), thickness: 0.0)
 
             // Create a new image context from the old image
-            UIGraphicsBeginImageContextWithOptions(task.canvas.size, false, 0.0)
-            task.canvas.draw(at: CGPoint())
+            UIGraphicsBeginImageContextWithOptions(task!.canvas.size, false, 0.0)
+            task!.canvas.draw(at: CGPoint())
 
             // Draw the erased touches with red
             UIColor.red.setStroke()
@@ -450,7 +438,7 @@ class TaskView: UIView {
             }
 
             // Get the final image
-            task.canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            task!.canvas = UIGraphicsGetImageFromCurrentImageContext()!
             UIGraphicsEndImageContext()
 
             // Set needs display for the corresponding rect
@@ -461,7 +449,7 @@ class TaskView: UIView {
             guard !strokesToErase.isEmpty else { return }
 
             // Calculate the minimum CGRect that bounds all the strokes
-            let strokesBounds = task.strokes.reduce(CGRect()) { $0.union($1.frame()) }
+            let strokesBounds = task!.strokes.reduce(CGRect()) { $0.union($1.frame()) }
 
             // Calculate the new canvas size
             var newCanvasBounds = strokesBounds
@@ -470,10 +458,10 @@ class TaskView: UIView {
             newCanvasBounds.size.height = (n + 1) * TaskView.kLineHeight
 
             // Remove unused grids
-            let heightDiff = task.canvas.size.height - newCanvasBounds.height
+            let heightDiff = task!.canvas.size.height - newCanvasBounds.height
             let numOfExcessLines = Int(heightDiff / TaskView.kLineHeight)
             for _ in 0 ..< numOfExcessLines {
-                task.grids.removeLast()
+                task!.grids.removeLast()
             }
 
             // Calculate the new view size
@@ -484,13 +472,13 @@ class TaskView: UIView {
             // Redraw the strokes to a new image context
             UIGraphicsBeginImageContextWithOptions(newCanvasBounds.size, false, 0.0)
             UIColor.black.set()
-            for s in task.strokes {
+            for s in task!.strokes {
                 s.draw()
             }
             if let s = currentStroke {
                 s.draw()
             }
-            task.canvas = UIGraphicsGetImageFromCurrentImageContext()!
+            task!.canvas = UIGraphicsGetImageFromCurrentImageContext()!
             UIGraphicsEndImageContext()
 
             strokesToErase.removeAll(keepingCapacity: true)
