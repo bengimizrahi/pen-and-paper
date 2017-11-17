@@ -109,8 +109,10 @@ class CanvasLayer: CALayer, CALayerDelegate {
 }
 
 protocol TaskViewDelegate: class {
-    func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat)
-    func taskView(_ taskView: TaskView, commit height: CGFloat)
+    func sizeBeganChanging(_ taskView: TaskView)
+    func sizeContinuedChanging(_ taskView: TaskView, deltaHeight: CGFloat)
+    func sizeEndedChanging(_ taskView: TaskView, deltaHeight: CGFloat)
+    func resized(_ taskView: TaskView)
 }
 
 class TaskView: UIView {
@@ -139,7 +141,9 @@ class TaskView: UIView {
     // MARK: States
 
     var touchIsAssociatedWithErasing = false
-    var shouldCommitFinalHeight = false
+
+    var originalSize = CGSize()
+    var sizeChanging = false
 
     // MARK: Drawing Information
 
@@ -254,7 +258,6 @@ class TaskView: UIView {
         // Reset stroke related states
         if touches.first!.phase == .began {
             touchIsAssociatedWithErasing = eraserButtonSelected()
-            shouldCommitFinalHeight = false
         }
 
         // Forward event to the current handler
@@ -278,6 +281,13 @@ class TaskView: UIView {
         // Expand the size if needed
         let expansionTriggeringBoundary = bounds.height - TaskView.kMargin
         if box!.maxY >= expansionTriggeringBoundary {
+
+            if !sizeChanging {
+                delegate?.sizeBeganChanging(self)
+                originalSize = bounds.size
+                sizeChanging = true
+            }
+
             let newCanvasSize = { () -> CGSize in
                 var sz = self.canvas.size
                 let n = CGFloat(Int(box!.maxY / TaskView.kLineHeight))
@@ -301,7 +311,6 @@ class TaskView: UIView {
             }
 
             // Change the bounds of the view and sublayers
-            let oldSize = frame.size
             let expandedSize = CGSize(width: bounds.width,
                                  height: box!.maxY + TaskView.kMargin)
             frame.size = expandedSize
@@ -316,8 +325,8 @@ class TaskView: UIView {
             stripeLayer.removeAllAnimations()
 
             // Notify delegate about the resizing
-            delegate?.taskView(self, heightChangedFrom: oldSize.height, to: expandedSize.height)
-            shouldCommitFinalHeight = true
+            let deltaHeight = bounds.height - originalSize.height
+            delegate?.sizeContinuedChanging(self, deltaHeight: deltaHeight)
         }
 
         if t.phase == .cancelled || t.phase == .ended {
@@ -338,8 +347,10 @@ class TaskView: UIView {
             currentStroke = nil
 
             // Notify delegate about the commiting the final size
-            if shouldCommitFinalHeight {
-                delegate?.taskView(self, commit: frame.size.height)
+            if sizeChanging {
+                let deltaHeight = bounds.height - originalSize.height
+                delegate?.sizeEndedChanging(self, deltaHeight: deltaHeight)
+                sizeChanging = false
             }
         } else {
             // Create a new image context from the old image
@@ -512,7 +523,7 @@ class TaskView: UIView {
                 stripeLayer.frame.size = newViewSize.size
 
                 // Notify the delegate about the resizing
-                delegate?.taskView(self, commit: frame.size.height)
+                delegate?.resized(self)
             }
 
             // Set needs display for the sublayers

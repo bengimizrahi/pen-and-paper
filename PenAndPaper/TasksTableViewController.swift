@@ -12,10 +12,13 @@ class TasksTableViewController: UIViewController {
 
     @IBOutlet weak var tableView: UITableView!
     weak var eraserButton: UIButton!
+    @IBOutlet weak var d1Button: UIBarButtonItem!
     
-    var tasks = [UUID : Task]()
-    var orderOfTasks = [UUID]()
-    
+    var tasks = [Int : Task]()
+    var orderOfTasks = [Int]()
+
+    var originalHeight: CGFloat = 0.0
+
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -34,6 +37,8 @@ class TasksTableViewController: UIViewController {
         let eraserBarButtonItem = UIBarButtonItem(customView: eraserButton)
         navigationItem.rightBarButtonItems?.append(eraserBarButtonItem)
         self.eraserButton = eraserButton
+
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -56,6 +61,12 @@ class TasksTableViewController: UIViewController {
         let backgroundColor = delegate.eraserButtonSelected ? UIColor.lightGray : UIColor.clear
         eraserButton.backgroundColor = backgroundColor
     }
+
+    @IBAction func d1Tapped() {
+        for id in orderOfTasks {
+            print("Task \(id) superview: \(tasks[id]!.view.superview != nil)")
+        }
+    }
 }
 
 extension TasksTableViewController: UITableViewDataSource {
@@ -64,45 +75,75 @@ extension TasksTableViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print("tableView(_ tableView: UITableView, cellForRowAt indexPath: \(indexPath))")
         let cell = tableView.dequeueReusableCell(
                 withIdentifier: "Cell", for: indexPath) as! TaskTableViewCell
         let taskId = orderOfTasks[indexPath.row]
         cell.setTask(tasks[taskId]!)
+        print("    attached task id \(taskId)")
         return cell
     }
 }
 
 extension TasksTableViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let taskId = orderOfTasks[indexPath.row]
-        let task = tasks[taskId]!
-        return task.view.intrinsicContentSize.height
-    }
-
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return CGFloat.leastNormalMagnitude
+    func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        print("didEndDisplaying row at: \(indexPath)")
+        let taskCell = cell as! TaskTableViewCell
+        if let oy = taskCell.originalY {
+            print("    cell was transformed, now reset!")
+            taskCell.frame.origin.y = oy
+            taskCell.originalY = nil
+        }
+//        print("    removing task with id \(taskCell.task!.id) from its superview")
+//        taskCell.task!.view.removeFromSuperview()
     }
 }
 
 extension TasksTableViewController: TaskViewDelegate {
-    func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat) {
-        let delta = newHeight - oldHeight
+    func sizeBeganChanging(_ taskView: TaskView) {
+        originalHeight = taskView.bounds.height
+        for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
+            if cell.task!.view !== taskView {
+                cell.originalY = cell.frame.origin.y
+            }
+        }
+    }
+
+    func sizeContinuedChanging(_ taskView: TaskView, deltaHeight: CGFloat) {
+        let delta = taskView.bounds.height - originalHeight
         var offsetCells = false
         UIView.animate(withDuration: 0.1) {
             for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
                 if !offsetCells {
                     if cell.task!.view === taskView {
                         offsetCells = true
-                        cell.frame.size.height += delta
+                        cell.frame.size.height = taskView.bounds.height
                     }
                 } else {
-                    cell.frame.origin.y += delta
+                    cell.frame.origin.y = cell.originalY! + delta
                 }
             }
         }
     }
 
-    func taskView(_ taskView: TaskView, commit height: CGFloat) {
-        tableView.reloadData()
+    func sizeEndedChanging(_ taskView: TaskView, deltaHeight: CGFloat) {
+        for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
+            print("from", cell.frame)
+            if let y = cell.originalY {
+                cell.frame.origin.y = y
+                print("to", cell.frame)
+                cell.originalY = nil
+            }
+        }
+        let idx = orderOfTasks.index { $0 == taskView.task.id }!
+        let idxPath = IndexPath(row: idx, section:0)
+        tableView.performBatchUpdates({
+            self.tableView.insertRows(at: [idxPath], with: .none)
+            self.tableView.deleteRows(at: [idxPath], with: .none)
+        }, completion: nil)
+    }
+
+    func resized(_ taskView: TaskView) {
+
     }
 }

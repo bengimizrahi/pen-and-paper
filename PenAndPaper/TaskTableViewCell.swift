@@ -10,7 +10,9 @@ import UIKit
 
 class TaskTableViewCell: UITableViewCell {
     var task: Task?
-    
+
+    var originalY: CGFloat? = nil
+
     func setTask(_ newTask: Task) {
         if let t = task {
             t.view.removeFromSuperview()

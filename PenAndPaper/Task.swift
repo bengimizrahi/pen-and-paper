@@ -8,9 +8,11 @@
 
 import UIKit
 
+var nextId = 0
+
 class Task {
 
-    let id: UUID
+    let id: Int
 
     // MARK: Drawing Information
 
@@ -21,7 +23,8 @@ class Task {
     var view: TaskView
 
     init() {
-        id = UUID()
+        id = nextId
+        nextId += 1
         strokes = Set<Stroke>()
         view = TaskView()
         view.task = self
