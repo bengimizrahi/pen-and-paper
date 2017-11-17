@@ -77,11 +77,11 @@ extension TasksTableViewController: UITableViewDataSource {
 }
 
 extension TasksTableViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let taskId = orderOfTasks[indexPath.row]
-        let task = tasks[taskId]!
-        return task.view.intrinsicContentSize.height
-    }
+//    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+//        let taskId = orderOfTasks[indexPath.row]
+//        let task = tasks[taskId]!
+//        return task.view.intrinsicContentSize.height
+//    }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return CGFloat.leastNormalMagnitude
@@ -90,23 +90,8 @@ extension TasksTableViewController: UITableViewDelegate {
 
 extension TasksTableViewController: TaskViewDelegate {
     func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat) {
-        let delta = newHeight - oldHeight
-        var offsetCells = false
-        UIView.animate(withDuration: 0.1) {
-            for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
-                if !offsetCells {
-                    if cell.task!.view === taskView {
-                        offsetCells = true
-                        cell.frame.size.height += delta
-                    }
-                } else {
-                    cell.frame.origin.y += delta
-                }
-            }
-        }
     }
 
     func taskView(_ taskView: TaskView, commit height: CGFloat) {
-        tableView.reloadData()
     }
 }
