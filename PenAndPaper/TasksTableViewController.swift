@@ -42,7 +42,6 @@ class TasksTableViewController: UIViewController {
     
     @IBAction func addButtonTapped() {
         let task = Task()
-        task.view.delegate = self
         tasks[task.id] = task
         orderOfTasks.insert(task.id, at: 0)
         tableView.beginUpdates()
@@ -72,6 +71,7 @@ extension TasksTableViewController: UITableViewDataSource {
                 withIdentifier: "Cell", for: indexPath) as! TaskTableViewCell
         let taskId = orderOfTasks[indexPath.row]
         cell.setTask(tasks[taskId]!)
+        cell.taskView.delegate = self
         return cell
     }
 }
@@ -80,7 +80,7 @@ extension TasksTableViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let taskId = orderOfTasks[indexPath.row]
         let task = tasks[taskId]!
-        return task.view.intrinsicContentSize.height
+        return task.size.height
     }
 
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
@@ -90,23 +90,9 @@ extension TasksTableViewController: UITableViewDelegate {
 
 extension TasksTableViewController: TaskViewDelegate {
     func taskView(_ taskView: TaskView, heightChangedFrom oldHeight: CGFloat, to newHeight: CGFloat) {
-        let delta = newHeight - oldHeight
-        var offsetCells = false
-        UIView.animate(withDuration: 0.1) {
-            for cell in self.tableView.visibleCells as! [TaskTableViewCell] {
-                if !offsetCells {
-                    if cell.task!.view === taskView {
-                        offsetCells = true
-                        cell.frame.size.height += delta
-                    }
-                } else {
-                    cell.frame.origin.y += delta
-                }
-            }
-        }
+        tableView.reloadData()
     }
 
     func taskView(_ taskView: TaskView, commit height: CGFloat) {
-        tableView.reloadData()
     }
 }

@@ -9,13 +9,10 @@
 import UIKit
 
 class TaskTableViewCell: UITableViewCell {
-    var task: Task?
-    
+
+    @IBOutlet weak var taskView: TaskView!
+
     func setTask(_ newTask: Task) {
-        if let t = task {
-            t.view.removeFromSuperview()
-        }
-        task = newTask
-        contentView.addSubview(task!.view)
+        taskView.task = newTask
     }
 }
