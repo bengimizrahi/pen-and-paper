@@ -42,7 +42,6 @@ class TasksTableViewController: UIViewController {
     
     @IBAction func addButtonTapped() {
         let task = Task()
-        task.view.delegate = self
         tasks[task.id] = task
         orderOfTasks.insert(task.id, at: 0)
         tableView.beginUpdates()

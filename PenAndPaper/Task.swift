@@ -9,21 +9,26 @@
 import UIKit
 
 class Task {
+    let id = UUID()
+    var strokes = Set<Stroke>()
+    var numOfGridsHorizontally = 0
+    var grids = [[Set<Stroke>]]()
+    var canvas = UIImage()
 
-    let id: UUID
-
-    // MARK: Drawing Information
-
-    var strokes: Set<Stroke>
-
-    // MARK: View
-
-    var view: TaskView
-
+    var size: CGSize {
+        return canvas.size
+    }
+    
     init() {
-        id = UUID()
-        strokes = Set<Stroke>()
-        view = TaskView()
-        view.task = self
+        // Setup canvas
+        let screenWidth = UIScreen.main.bounds.width
+        UIGraphicsBeginImageContextWithOptions(
+            CGSize(width: screenWidth, height: TaskView.kLineHeight), false, 0.0)
+        canvas = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+
+        // Setup grids
+        numOfGridsHorizontally = Int(size.width / TaskView.kLineHeight) + 1
+        grids = [[Set<Stroke>](repeating: [], count: numOfGridsHorizontally)]
     }
 }
