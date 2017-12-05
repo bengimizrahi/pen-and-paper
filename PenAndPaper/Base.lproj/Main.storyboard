@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="iDU-LX-pWG">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ZhH-5H-Ers">
     <device id="ipad10_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
@@ -9,86 +9,30 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Pen & Paper-->
-        <scene sceneID="MEV-fF-nfP">
+        <!--View Controller-->
+        <scene sceneID="15n-PL-eB4">
             <objects>
-                <viewController id="TxS-Zy-lb5" customClass="TasksTableViewController" customModule="PenAndPaper" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="0ch-x4-wLj">
+                <viewController id="ZhH-5H-Ers" customClass="ViewController" customModule="PenAndPaper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="5Yo-Da-4C9">
                         <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="grouped" separatorStyle="default" allowsSelection="NO" rowHeight="-1" estimatedRowHeight="40" sectionHeaderHeight="18" sectionFooterHeight="18" contentViewInsetsToSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xlv-Pi-K5j">
-                                <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
-                                <color key="backgroundColor" cocoaTouchSystemColor="groupTableViewBackgroundColor"/>
-                                <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" showsReorderControl="YES" indentationWidth="10" reuseIdentifier="Cell" id="IM6-X6-UHq" customClass="TaskTableViewCell" customModule="PenAndPaper" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="55.5" width="834" height="44"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="IM6-X6-UHq" id="Yly-hQ-EAC">
-                                            <rect key="frame" x="0.0" y="0.0" width="834" height="43.5"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="FT8-xj-NdM" customClass="TaskView" customModule="PenAndPaper" customModuleProvider="target">
-                                                    <rect key="frame" x="0.0" y="0.0" width="834" height="43.5"/>
-                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                                </view>
-                                            </subviews>
-                                            <constraints>
-                                                <constraint firstAttribute="trailing" secondItem="FT8-xj-NdM" secondAttribute="trailing" id="7oh-HG-q9n"/>
-                                                <constraint firstItem="FT8-xj-NdM" firstAttribute="leading" secondItem="Yly-hQ-EAC" secondAttribute="leading" id="UOd-yb-66k"/>
-                                                <constraint firstItem="FT8-xj-NdM" firstAttribute="top" secondItem="Yly-hQ-EAC" secondAttribute="top" id="WKi-MH-fGM"/>
-                                                <constraint firstAttribute="bottom" secondItem="FT8-xj-NdM" secondAttribute="bottom" id="v8h-i8-rKN"/>
-                                            </constraints>
-                                        </tableViewCellContentView>
-                                        <color key="backgroundColor" red="0.99999600649999998" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                        <connections>
-                                            <outlet property="taskView" destination="FT8-xj-NdM" id="BXT-hd-nol"/>
-                                        </connections>
-                                    </tableViewCell>
-                                </prototypes>
-                            </tableView>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yjo-ka-KbD" customClass="CanvasView" customModule="PenAndPaper" customModuleProvider="target">
+                                <rect key="frame" x="48" y="171" width="745" height="387"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
                         </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <constraints>
-                            <constraint firstAttribute="trailing" secondItem="Xlv-Pi-K5j" secondAttribute="trailing" id="XJB-c4-3RI"/>
-                            <constraint firstItem="Xlv-Pi-K5j" firstAttribute="leading" secondItem="0ch-x4-wLj" secondAttribute="leading" id="ggM-NQ-sr9"/>
-                            <constraint firstItem="Xlv-Pi-K5j" firstAttribute="top" secondItem="0ch-x4-wLj" secondAttribute="top" id="tOw-GG-nDH"/>
-                            <constraint firstAttribute="bottom" secondItem="Xlv-Pi-K5j" secondAttribute="bottom" id="wBz-bL-TRN"/>
-                        </constraints>
-                        <viewLayoutGuide key="safeArea" id="SSi-Ee-Hud"/>
+                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <viewLayoutGuide key="safeArea" id="hn4-Tq-Fs9"/>
                     </view>
-                    <navigationItem key="navigationItem" title="Pen &amp; Paper" id="reF-K3-rDk">
-                        <barButtonItem key="rightBarButtonItem" systemItem="add" id="KBJ-dx-Wfo">
-                            <connections>
-                                <action selector="addButtonTapped" destination="TxS-Zy-lb5" id="BIU-zP-Aw8"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
                     <connections>
-                        <outlet property="tableView" destination="Xlv-Pi-K5j" id="9QP-eg-IE9"/>
+                        <outlet property="canvasView" destination="Yjo-ka-KbD" id="vOf-Fa-LTp"/>
                     </connections>
                 </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="uQH-JO-dac" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="BBL-rs-V4d" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="667" y="705"/>
-        </scene>
-        <!--Navigation Controller-->
-        <scene sceneID="KOx-gf-4Tu">
-            <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="iDU-LX-pWG" sceneMemberID="viewController">
-                    <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="fnd-Ua-XYq">
-                        <rect key="frame" x="0.0" y="20" width="834" height="44"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                    </navigationBar>
-                    <nil name="viewControllers"/>
-                    <connections>
-                        <segue destination="TxS-Zy-lb5" kind="relationship" relationship="rootViewController" id="ACZ-Fk-DGW"/>
-                    </connections>
-                </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="aMZ-Uc-9PF" userLabel="First Responder" sceneMemberID="firstResponder"/>
-            </objects>
-            <point key="canvasLocation" x="-342" y="705"/>
+            <point key="canvasLocation" x="-136.69064748201438" y="1485.9712230215828"/>
         </scene>
     </scenes>
 </document>

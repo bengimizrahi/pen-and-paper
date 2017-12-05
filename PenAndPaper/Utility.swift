@@ -146,3 +146,15 @@ func distance(from point0: CGPoint, to point1: CGPoint, isLessThan dist: CGFloat
     let quadrance = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0)
     return CGFloat(quadrance) < (dist * dist)
 }
+
+let kMinQuandrance: CGFloat = 0.003
+
+func goodQuadrance(touch: UITouch, view: UIView) -> Bool {
+    if touch.phase == .began { return true }
+    let prev = touch.precisePreviousLocation(in: view)
+    let curr = touch.preciseLocation(in: view)
+    let (dx, dy) = (curr.x - prev.x, curr.y - prev.y)
+    let quadrance = dx * dx + dy * dy
+    return quadrance >= kMinQuandrance
+}
+
