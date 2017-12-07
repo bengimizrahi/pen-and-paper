@@ -79,6 +79,27 @@ class Stroke {
             return vertices.reduce(box) { $0.union(vertexFrame($1)) }
         }
     }
+
+    func draw() {
+        var path = UIBezierPath()
+
+        // Move to the first vertex location and set the initial thickness
+        let firstVertex = vertices.first!
+        path.move(to: firstVertex.location)
+        path.lineWidth = firstVertex.thickness
+
+        // Add subsequent vertex locations and make strokes with corresponding
+        // thicknesses.
+        for v in vertices[1...] {
+            path.addLine(to: v.location)
+            path.lineCapStyle = .round
+            path.stroke()
+
+            path = UIBezierPath()
+            path.move(to: v.location)
+            path.lineWidth = v.thickness
+        }
+    }
 }
 
 extension Stroke: Hashable {
