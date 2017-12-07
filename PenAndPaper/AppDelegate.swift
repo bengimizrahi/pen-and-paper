@@ -12,10 +12,17 @@ import UIKit
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-    var eraserButtonSelected = false
+    var rootTask = Task()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        window = UIWindow(frame: UIScreen.main.bounds)
+        if let window = window {
+            let mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
+            let rootTaskViewController = mainStoryboard.instantiateInitialViewController() as! TaskListTableViewController
+            rootTaskViewController.parentTask = rootTask
+            window.rootViewController = rootTaskViewController
+            window.makeKeyAndVisible()
+        }
         return true
     }
 

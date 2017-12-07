@@ -1,14 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ZhH-5H-Ers">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="DiT-Py-0uX">
     <device id="ipad10_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13770"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
+        <!--Task List Table View Controller-->
+        <scene sceneID="C1M-dS-pJH">
+            <objects>
+                <viewController id="DiT-Py-0uX" customClass="TaskListTableViewController" customModule="PenAndPaper" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="sCq-fR-dTe">
+                        <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="fJR-q6-yFt">
+                                <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <prototypes>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TaskViewController" rowHeight="100" id="o66-6d-IEt" customClass="TaskViewController" customModule="PenAndPaper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="834" height="100"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="o66-6d-IEt" id="Vvm-UQ-0aY">
+                                            <rect key="frame" x="0.0" y="0.0" width="834" height="99.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9LQ-4V-R4o">
+                                                    <rect key="frame" x="15" y="11" width="804" height="80"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="height" constant="80" id="j5S-O9-5vb"/>
+                                                    </constraints>
+                                                </imageView>
+                                                <view contentMode="scaleToFill" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fQS-b0-ojX">
+                                                    <rect key="frame" x="55" y="91" width="764" height="198"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                                </view>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="9LQ-4V-R4o" firstAttribute="trailing" secondItem="Vvm-UQ-0aY" secondAttribute="trailingMargin" id="Ejy-U6-Cd8"/>
+                                                <constraint firstItem="9LQ-4V-R4o" firstAttribute="leading" secondItem="Vvm-UQ-0aY" secondAttribute="leadingMargin" id="GsR-Us-IZy"/>
+                                                <constraint firstItem="fQS-b0-ojX" firstAttribute="top" secondItem="9LQ-4V-R4o" secondAttribute="bottom" id="Ooi-gs-Kzb"/>
+                                                <constraint firstItem="fQS-b0-ojX" firstAttribute="trailing" secondItem="Vvm-UQ-0aY" secondAttribute="trailingMargin" id="QHE-0F-iHC"/>
+                                                <constraint firstItem="fQS-b0-ojX" firstAttribute="bottom" secondItem="Vvm-UQ-0aY" secondAttribute="bottomMargin" id="bp6-Rn-0iG"/>
+                                                <constraint firstItem="9LQ-4V-R4o" firstAttribute="top" secondItem="Vvm-UQ-0aY" secondAttribute="topMargin" id="dYA-TI-1hh"/>
+                                                <constraint firstItem="fQS-b0-ojX" firstAttribute="leading" secondItem="Vvm-UQ-0aY" secondAttribute="leadingMargin" constant="40" id="osC-qQ-hvb"/>
+                                                <constraint firstItem="fQS-b0-ojX" firstAttribute="top" secondItem="9LQ-4V-R4o" secondAttribute="bottom" id="quF-Gt-8gJ"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="subtasksContainerView" destination="fQS-b0-ojX" id="oJl-dl-3vV"/>
+                                            <outlet property="taskDescriptionImageView" destination="9LQ-4V-R4o" id="v7q-hQ-Tod"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstAttribute="trailing" secondItem="fJR-q6-yFt" secondAttribute="trailing" id="9lw-Lz-MBN"/>
+                            <constraint firstAttribute="bottom" secondItem="fJR-q6-yFt" secondAttribute="bottom" id="YgI-Bc-5Ek"/>
+                            <constraint firstItem="fJR-q6-yFt" firstAttribute="top" secondItem="sCq-fR-dTe" secondAttribute="top" id="gmf-oA-5yn"/>
+                            <constraint firstItem="fJR-q6-yFt" firstAttribute="leading" secondItem="sCq-fR-dTe" secondAttribute="leading" id="tP6-jw-QMZ"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="tableView" destination="fJR-q6-yFt" id="No2-0h-Nkz"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="oHN-TG-6eZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-1581.294964028777" y="2124.8201438848923"/>
+        </scene>
         <!--View Controller-->
         <scene sceneID="15n-PL-eB4">
             <objects>
