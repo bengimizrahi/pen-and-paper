@@ -273,6 +273,27 @@ class CanvasView: UIView {
         canvasLayer.setNeedsDisplay()
     }
 
+    func croppedCanvas() -> UIImage? {
+        guard !strokes.isEmpty else { return nil }
+
+        let boundingBox = strokes.reduce(strokes.first!.frame()) { $0.union($1.frame()) }
+        let offsetWithinStripes = boundingBox.minX.truncatingRemainder(
+                dividingBy: CanvasView.kLineHeight)
+        let snappedBoundingBox = CGRect(x: boundingBox.minX,
+                                        y: boundingBox.minY - offsetWithinStripes,
+                                        width: boundingBox.width,
+                                        height: boundingBox.height + offsetWithinStripes)
+        let scale = UIScreen.main.scale
+        let snappedBoundingBoxInPixels = snappedBoundingBox.applying(
+                CGAffineTransform(scaleX: scale, y: scale))
+
+        canvas.cgImage!.cropping(to: snappedBoundingBoxInPixels)
+        guard let subCgImage = canvas.cgImage!.cropping(to: snappedBoundingBoxInPixels) else { return nil }
+
+        let subimage = UIImage(cgImage: subCgImage)
+        return subimage
+    }
+
     // MARK: Handle touches
 
     func handleTouches(_ touches: Set<UITouch>, with event: UIEvent?) {
