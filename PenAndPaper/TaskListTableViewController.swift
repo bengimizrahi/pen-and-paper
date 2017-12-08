@@ -18,6 +18,17 @@ class TaskListTableViewController : UIViewController {
         super.viewDidLoad()
         tableView.dataSource = self
     }
+
+    func setupAsRoot() {
+        let addBarButton = UIBarButtonItem(barButtonSystemItem: .add,
+                                           target: self,
+                                           action: #selector(handleAddBarButtonTap))
+        navigationItem.rightBarButtonItems = [addBarButton]
+    }
+
+    @objc func handleAddBarButtonTap() {
+        print("!")
+    }
 }
 
 extension TaskListTableViewController : UITableViewDataSource {

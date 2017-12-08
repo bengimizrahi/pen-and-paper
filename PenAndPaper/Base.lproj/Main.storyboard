@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="DiT-Py-0uX">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="13770" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="ffp-86-dN5">
     <device id="ipad10_5" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13770"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
-        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -22,21 +21,21 @@
                                 <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TaskViewController" rowHeight="100" id="o66-6d-IEt" customClass="TaskViewController" customModule="PenAndPaper" customModuleProvider="target">
-                                        <rect key="frame" x="0.0" y="28" width="834" height="100"/>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TaskViewController" rowHeight="200" id="o66-6d-IEt" customClass="TaskViewController" customModule="PenAndPaper" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="834" height="200"/>
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="o66-6d-IEt" id="Vvm-UQ-0aY">
-                                            <rect key="frame" x="0.0" y="0.0" width="834" height="99.5"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="o66-6d-IEt" id="Vvm-UQ-0aY">
+                                            <rect key="frame" x="0.0" y="0.0" width="834" height="199.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9LQ-4V-R4o">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9LQ-4V-R4o">
                                                     <rect key="frame" x="15" y="11" width="804" height="80"/>
                                                     <constraints>
                                                         <constraint firstAttribute="height" constant="80" id="j5S-O9-5vb"/>
                                                     </constraints>
                                                 </imageView>
-                                                <view contentMode="scaleToFill" ambiguous="YES" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fQS-b0-ojX">
-                                                    <rect key="frame" x="55" y="91" width="764" height="198"/>
+                                                <view contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fQS-b0-ojX">
+                                                    <rect key="frame" x="55" y="91" width="764" height="98"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                                 </view>
                                             </subviews>
@@ -67,38 +66,32 @@
                             <constraint firstItem="fJR-q6-yFt" firstAttribute="leading" secondItem="sCq-fR-dTe" secondAttribute="leading" id="tP6-jw-QMZ"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="bua-ce-tbs"/>
                     <connections>
-                        <outlet property="tableView" destination="fJR-q6-yFt" id="No2-0h-Nkz"/>
+                        <outlet property="tableView" destination="fJR-q6-yFt" id="fih-BM-aot"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oHN-TG-6eZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-1581.294964028777" y="2124.8201438848923"/>
+            <point key="canvasLocation" x="-829" y="2125"/>
         </scene>
-        <!--View Controller-->
-        <scene sceneID="15n-PL-eB4">
+        <!--Navigation Controller-->
+        <scene sceneID="Mi1-zQ-QOw">
             <objects>
-                <viewController id="ZhH-5H-Ers" customClass="ViewController" customModule="PenAndPaper" customModuleProvider="target" sceneMemberID="viewController">
-                    <view key="view" contentMode="scaleToFill" id="5Yo-Da-4C9">
-                        <rect key="frame" x="0.0" y="0.0" width="834" height="1112"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Yjo-ka-KbD" customClass="CanvasView" customModule="PenAndPaper" customModuleProvider="target">
-                                <rect key="frame" x="48" y="171" width="745" height="387"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                            </view>
-                        </subviews>
-                        <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                        <viewLayoutGuide key="safeArea" id="hn4-Tq-Fs9"/>
-                    </view>
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="ffp-86-dN5" sceneMemberID="viewController">
+                    <toolbarItems/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="AeE-ed-HXG">
+                        <rect key="frame" x="0.0" y="20" width="834" height="44"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <nil name="viewControllers"/>
                     <connections>
-                        <outlet property="canvasView" destination="Yjo-ka-KbD" id="vOf-Fa-LTp"/>
+                        <segue destination="DiT-Py-0uX" kind="relationship" relationship="rootViewController" id="T1W-Ic-jen"/>
                     </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="BBL-rs-V4d" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="0n2-p0-gqu" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="-136.69064748201438" y="1485.9712230215828"/>
+            <point key="canvasLocation" x="-1581.294964028777" y="2124.8201438848923"/>
         </scene>
     </scenes>
 </document>

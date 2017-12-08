@@ -18,9 +18,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
         if let window = window {
             let mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
-            let rootTaskViewController = mainStoryboard.instantiateInitialViewController() as! TaskListTableViewController
+            let navigationController = mainStoryboard.instantiateInitialViewController()
+                    as! UINavigationController
+            print(navigationController.viewControllers.count)
+            let rootTaskViewController =
+                    navigationController.viewControllers[0] as! TaskListTableViewController
+            rootTaskViewController.setupAsRoot()
             rootTaskViewController.parentTask = rootTask
-            window.rootViewController = rootTaskViewController
+            window.rootViewController = navigationController
             window.makeKeyAndVisible()
         }
         return true
