@@ -239,6 +239,7 @@ class CanvasView: UIView {
 
     func secondPhaseInitialize() {
         // Conduct initialisation involving self
+        backgroundColor = UIColor.white
         layer.addSublayer(stripeLayer)
         layer.addSublayer(canvasLayer)
         canvasLayer.parentView = self
@@ -277,12 +278,17 @@ class CanvasView: UIView {
         guard !strokes.isEmpty else { return nil }
 
         let boundingBox = strokes.reduce(strokes.first!.frame()) { $0.union($1.frame()) }
-        let offsetWithinStripes = boundingBox.minX.truncatingRemainder(
+        let topOffsetWithinStripes = boundingBox.minY.truncatingRemainder(
                 dividingBy: CanvasView.kLineHeight)
+        let bottomOffsetWithinStripes = boundingBox.maxY.truncatingRemainder(
+                dividingBy: CanvasView.kLineHeight)
+        let extraBottomInset = CanvasView.kLineHeight - bottomOffsetWithinStripes
+        let finalHeight = min(bounds.height,
+                              boundingBox.height + topOffsetWithinStripes + extraBottomInset)
         let snappedBoundingBox = CGRect(x: boundingBox.minX,
-                                        y: boundingBox.minY - offsetWithinStripes,
+                                        y: boundingBox.minY - topOffsetWithinStripes,
                                         width: boundingBox.width,
-                                        height: boundingBox.height + offsetWithinStripes)
+                                        height: finalHeight)
         let scale = UIScreen.main.scale
         let snappedBoundingBoxInPixels = snappedBoundingBox.applying(
                 CGAffineTransform(scaleX: scale, y: scale))

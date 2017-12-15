@@ -27,7 +27,12 @@ class TaskListTableViewController : UIViewController {
     }
 
     @objc func handleAddBarButtonTap() {
-        print("!")
+        let canvasViewController = CanvasViewController()
+        let navigationController = UINavigationController(rootViewController: canvasViewController)
+        navigationController.modalTransitionStyle = .crossDissolve
+        navigationController.modalPresentationStyle = .custom
+        navigationController.transitioningDelegate = self
+        present(navigationController, animated: true, completion: nil);
     }
 }
 
@@ -40,11 +45,20 @@ extension TaskListTableViewController : UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskViewController") as! TaskViewController
         let task = parentTask!.subTasks[indexPath.row]
         cell.taskDescriptionImageView.image = task.cachedImage
-        if !(task.subTasks.isEmpty) {
+        if !task.subTasks.isEmpty {
             cell.subtasksViewController = TaskListTableViewController()
             cell.subtasksViewController!.parentTask = task
             cell.subtasksContainerView.addSubview(cell.subtasksViewController!.view)
         }
         return cell
+    }
+}
+
+extension TaskListTableViewController : UIViewControllerTransitioningDelegate {
+    func presentationController(forPresented presented: UIViewController,
+                                presenting: UIViewController?,
+                                source: UIViewController) -> UIPresentationController? {
+        return CanvasViewPresentationController(presentedViewController: presented,
+                                                presenting: presenting)
     }
 }

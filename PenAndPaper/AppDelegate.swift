@@ -20,7 +20,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
             let navigationController = mainStoryboard.instantiateInitialViewController()
                     as! UINavigationController
-            print(navigationController.viewControllers.count)
             let rootTaskViewController =
                     navigationController.viewControllers[0] as! TaskListTableViewController
             rootTaskViewController.setupAsRoot()
